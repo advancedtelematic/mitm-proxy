@@ -6,7 +6,8 @@ import pytest
 from canonicaljson import encode_canonical_json
 from flask import Response
 from tuf_mitm_proxy.alteration import (Alteration, TwiddleJson, NoOpAlteration,
-        AddSignatures, DeleteSignatures)
+        AddSignatures, DeleteSignatures, AddSignatures2, DeleteSignatures2,
+        DuplicateSignature)
 
 
 class TestAlteration:
@@ -96,9 +97,27 @@ class TestDeleteSignatures:
     def test_check(self):
         resp = Response(encode_canonical_json(self.JSON).decode('utf-8'))
         resp.headers['Content-Type'] = 'application/json'
-        assert AddSignatures.check(resp)
+        assert DeleteSignatures.check(resp)
 
     def test_apply(self):
         resp = Response(encode_canonical_json(self.JSON).decode('utf-8'))
         mod = DeleteSignatures.apply(resp)
         assert not json.loads(mod.data.decode('utf-8'))['signatures']
+
+
+class TestDuplicateSignature:
+
+    JSON = {'signatures': [{'keyid': 'abc123', 'method': 'rsa', 'sig': 'aaa111'}],
+            'signed': {'wat': 'lol'}}
+
+    def test_check(self):
+        resp = Response(encode_canonical_json(self.JSON).decode('utf-8'))
+        resp.headers['Content-Type'] = 'application/json'
+        assert DuplicateSignature.check(resp)
+
+    def test_apply(self):
+        resp = Response(encode_canonical_json(self.JSON).decode('utf-8'))
+        mod = DuplicateSignature.apply(resp)
+        sigs = json.loads(mod.data.decode('utf-8'))['signatures']
+        assert len(sigs) == 2
+        assert sigs[0] == sigs[1]
