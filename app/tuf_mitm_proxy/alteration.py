@@ -219,6 +219,20 @@ class DeleteSignatures3(DeleteSignatures):
     DELETIONS = 3
 
 
+class DuplicateSignature(Alteration):
+
+    @classmethod
+    def check(cls, resp):
+        return cls._is_signed_json(resp)
+
+    @classmethod
+    def apply(cls, resp):
+        jsn = json.loads(resp.data.decode('utf-8'))
+        jsn['signatures'].insert(0, jsn['signatures'][0].copy())
+        resp.data = encode_canonical_json(jsn)
+        return resp
+
+
 _available_alterations = Alteration.__subclasses__()
 
 
