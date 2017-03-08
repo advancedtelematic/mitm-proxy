@@ -80,6 +80,8 @@ class Alteration:
 class NoOpAlteration(Alteration):
     '''The "default" case that does not alter the response at all.'''
 
+    NAME = 'no-op'
+
     @classmethod
     def check(cls, resp):
         '''Never valid.'''
@@ -92,6 +94,8 @@ class NoOpAlteration(Alteration):
 
 class TwiddleJson(Alteration):
     '''Makes exactly one arbitrary change to the JSON body of response'''
+
+    NAME = 'twiddle-json'
 
     @classmethod
     def check(cls, resp):
@@ -135,6 +139,7 @@ class TwiddleJson(Alteration):
 class AddSignatures(Alteration):
     '''Adds signatures to responses with signed JSON bodies'''
 
+    NAME = 'add-sigantures-1'
     ADDITIONS = 1
 
     @classmethod
@@ -178,22 +183,25 @@ class AddSignatures(Alteration):
         
         return {'method': method,
                 'keyid': binascii.hexlify(os.urandom(32)).decode('utf-8'),  # TODO
-                'sig': binascii.hexlify(sig).decode('utf-8')}
+                'sig': base64.b64encode(sig).decode('utf-8')}
 
 
 class AddSignatures2(AddSignatures):
 
+    NAME = 'add-signatures-2'
     ADDITIONS = 2
 
 
 class AddSignatures3(AddSignatures):
 
+    NAME = 'add-signatures-3'
     ADDITIONS = 3
 
 
 class DeleteSignatures(Alteration):
     '''Removes signatures from responses with signed JSON bodies'''
 
+    NAME = 'delete-signatures-1'
     DELETIONS = 1 
 
     @classmethod
@@ -211,15 +219,19 @@ class DeleteSignatures(Alteration):
 
 class DeleteSignatures2(DeleteSignatures):
 
+    NAME = 'delete-signatures-2'
     DELETIONS = 2
 
 
 class DeleteSignatures3(DeleteSignatures):
 
+    NAME = 'delete-signatures-3'
     DELETIONS = 3
 
 
 class DuplicateSignature(Alteration):
+
+    NAME = 'duplicate-signatures'
 
     @classmethod
     def check(cls, resp):
@@ -233,15 +245,24 @@ class DuplicateSignature(Alteration):
         return resp
 
 
-_available_alterations = Alteration.__subclasses__()
+# TODO flip chars in existing signatures
 
 
-def select_alteration(resp):
+def all_subclasses(cls):
+    return cls.__subclasses__() + [g for s in cls.__subclasses__()
+                                   for g in all_subclasses(s)]
+
+
+available_alterations = all_subclasses(Alteration)
+
+
+def select_alteration(resp, choices=None):
     '''Randomly select one alteration to apply to the HTTP response'''
 
-    choices = list(filter(lambda x: x.check(resp), _available_alterations))
+    alterations = list(filter(lambda x: x.NAME in choices and x.check(resp),
+                       available_alterations))
 
-    if not choices:
-        choices = [NoOpAlteration]
+    if not alterations:
+        alterations = [NoOpAlteration]
 
-    return random.choice(choices)
+    return random.choice(alterations)

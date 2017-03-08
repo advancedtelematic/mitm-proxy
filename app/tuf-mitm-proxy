@@ -13,5 +13,5 @@ from tuf_mitm_proxy import arg_parser, create_app
 
 if __name__ == '__main__':
     args = arg_parser(path.basename(__file__)).parse_args()
-    create_app(args.proxy_domain, args.proxy_port) \
+    create_app(args.proxy_domain, args.proxy_port, args.alteration) \
             .run(debug=True, host=args.bind_interface, port=args.bind_port)
