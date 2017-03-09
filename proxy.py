@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-no
+# -*- coding: utf-8 -*-
 
 import base64
 import binascii
@@ -8,29 +8,53 @@ import os
 import random
 import rsa
 
+from argparse import ArgumentParser
 from canonicaljson import encode_canonical_json
+from mitmproxy import ctx
 from os import path
+
+
+class Meddler:
+
+    def __init__(self, alterations):
+        self.alterations = alterations
+
+    def response(self, flow):
+        alteration = select_alteration(flow, self.alterations)
+        ctx.log.info("Alteration '{}' selected".format(alteration.NAME))
+        alteration.apply(flow)
+
+
+def start():
+    parser = ArgumentParser(path.basename(__file__), description='runs a MITM proxy')
+    parser.add_argument('--alteration', '-a', help='The names of alterations to use (default `all`)',
+                        choices=list(sorted(map(lambda x: x.NAME, available_alterations))),
+                        default=available_alterations,
+                        action='append')
+    args = parser.parse_args()
+
+    return Meddler(args.alteration)
 
 
 class Alteration:
     '''Base class for HTTP alterations'''
 
     @classmethod
-    def check(cls, resp):  # pragma: no cover
+    def check(cls, flow):  # pragma: no cover
         '''Check if an alteration can be applied to a response'''
         raise NotImplemented
 
     @classmethod
-    def apply(cls, resp):  # pragma: no cover
+    def apply(cls, flow):  # pragma: no cover
         '''Apply an alteration to a response'''
         raise NotImplemented
 
     @classmethod
-    def _is_json(cls, resp):
-        return resp.headers.get('Content-Type') == 'application/json'
+    def _is_json(cls, flow):
+        return flow.response.headers.get('Content-Type') == 'application/json'
 
     @classmethod
-    def _is_signed_json(cls, resp):
+    def _is_signed_json(cls, flow):
         '''Checks if the JSON is of the form:
            ```{"signatures":[
                ...
@@ -42,20 +66,15 @@ class Alteration:
               
            ```
         '''
-        if cls._is_json(resp):
-            # TODO this is defnitely just insane and should never happen, yet somehow here I am
-            if not hasattr(resp, 'data'):
-                resp.data = resp.text.encode('utf-8')
-
-            # TODO data might not be utf-8 encoded
-            jsn = json.loads(resp.data.decode('utf-8'))
+        if cls._is_json(flow):
+            jsn = json.loads(flow.response.content.decode('utf-8'))
             return 'signatures' in jsn and 'signed' in jsn
         else:
             return False
 
     @staticmethod
     def _get_key_material(typ='rsa', num=1, private=True):
-        root = path.join(path.dirname(__file__), '../keys')
+        root = path.join(path.dirname(__file__), 'keys')
 
         if typ == 'rsa':
             if private:
@@ -83,13 +102,13 @@ class NoOpAlteration(Alteration):
     NAME = 'no-op'
 
     @classmethod
-    def check(cls, resp):
+    def check(cls, flow):
         '''Never valid.'''
         return False
 
     @classmethod
-    def apply(cls, resp):
-        return resp
+    def apply(cls, flow):
+        pass
 
 
 class TwiddleJson(Alteration):
@@ -98,16 +117,15 @@ class TwiddleJson(Alteration):
     NAME = 'twiddle-json'
 
     @classmethod
-    def check(cls, resp):
-        return cls._is_json(resp)
+    def check(cls, flow):
+        return cls._is_json(flow)
 
     @classmethod
-    def apply(cls, resp):
+    def apply(cls, flow):
         # TODO might not always be utf-8
-        body = resp.data.decode('utf-8')
+        body = flow.response.content.decode('utf-8')
         jsn = cls._twiddle_json(json.loads(body))
-        resp.data = encode_canonical_json(jsn)
-        return resp
+        flow.response.content = encode_canonical_json(jsn)
 
     @classmethod
     def _twiddle_json(cls, jsn):
@@ -143,12 +161,12 @@ class AddSignatures(Alteration):
     ADDITIONS = 1
 
     @classmethod
-    def check(cls, resp):
-        return cls._is_signed_json(resp)
+    def check(cls, flow):
+        return cls._is_signed_json(flow)
 
     @classmethod
-    def apply(cls, resp):
-        jsn = json.loads(resp.data.decode('utf-8'))
+    def apply(cls, flow):
+        jsn = json.loads(flow.response.content.decode('utf-8'))
 
         # create a list of all possible key options
         key_opts = []
@@ -164,8 +182,7 @@ class AddSignatures(Alteration):
             sig = cls._sign_json(jsn, **key_opts[x])
             jsn['signatures'].insert(0, sig)
 
-        resp.data = encode_canonical_json(jsn)
-        return resp
+        flow.response.content = encode_canonical_json(jsn)
 
     @classmethod
     def _sign_json(cls, jsn, is_rsa, key_num):
@@ -205,16 +222,15 @@ class DeleteSignatures(Alteration):
     DELETIONS = 1 
 
     @classmethod
-    def check(cls, resp):
-        return cls._is_signed_json(resp)
+    def check(cls, flow):
+        return cls._is_signed_json(flow)
 
     @classmethod
-    def apply(cls, resp):
+    def apply(cls, flow):
         # TODO data might not be utf-8 encoded
-        jsn = json.loads(resp.data.decode('utf-8'))
+        jsn = json.loads(flow.response.content.decode('utf-8'))
         jsn['signatures'] = jsn['signatures'][cls.DELETIONS:]
-        resp.data = encode_canonical_json(jsn)
-        return resp
+        flow.response.content = encode_canonical_json(jsn)
 
 
 class DeleteSignatures2(DeleteSignatures):
@@ -234,15 +250,14 @@ class DuplicateSignature(Alteration):
     NAME = 'duplicate-signatures'
 
     @classmethod
-    def check(cls, resp):
-        return cls._is_signed_json(resp)
+    def check(cls, flow):
+        return cls._is_signed_json(flow)
 
     @classmethod
-    def apply(cls, resp):
-        jsn = json.loads(resp.data.decode('utf-8'))
+    def apply(cls, flow):
+        jsn = json.loads(flow.response.content.decode('utf-8'))
         jsn['signatures'].insert(0, jsn['signatures'][0].copy())
-        resp.data = encode_canonical_json(jsn)
-        return resp
+        flow.response.content = encode_canonical_json(jsn)
 
 
 # TODO flip chars in existing signatures
@@ -252,14 +267,14 @@ def all_subclasses(cls):
     return cls.__subclasses__() + [g for s in cls.__subclasses__()
                                    for g in all_subclasses(s)]
 
-
 available_alterations = all_subclasses(Alteration)
 
 
 def select_alteration(resp, choices=None):
     '''Randomly select one alteration to apply to the HTTP response'''
 
-    alterations = list(filter(lambda x: x.NAME in choices and x.check(resp),
+    alterations = list(filter(lambda x: x.NAME in choices if choices else True \
+                              and x.check(flow),
                        available_alterations))
 
     if not alterations:
