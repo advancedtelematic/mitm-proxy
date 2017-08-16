@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+[packages]
+canonicaljson = "*"
+consecution = "*"
+ed25519 = "*"
+mitmproxy = "*"
+pipenv = "*"
+pyrsistent = "*"
+requests = "*"
+rsa = "*"

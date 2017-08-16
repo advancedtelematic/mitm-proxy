@@ -64,10 +64,11 @@ iptables -t nat -A OUTPUT -o br0 -p tcp -j REDIRECT --to-port 8080
 
 
 # start the mitmproxy server
-sudo -Eu mitm mitmproxy \
+exec sudo -u mitm pipenv run \
+  ${CMD:-mitmproxy} \
   --transparent \
   --host \
   --cadir=/certs \
   --client-certs=/certs/device.pem \
   --upstream-trusted-ca=/certs/ca.crt \
-  --script /src/proxy.py
+  --script /pipenv/src/proxy.py

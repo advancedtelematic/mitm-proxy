@@ -10,6 +10,7 @@ DOCKER_RUN := \
 		--privileged \
 		--publish 2222:$(QEMU_PORT) \
 		--volume $(IMAGE_DIR):/qemu \
+		--volume $(CURDIR)/src:/pipenv/src \
 		$(DOCKER_IMG):$(DOCKER_TAG)
 
 SSH_HOST := root@localhost

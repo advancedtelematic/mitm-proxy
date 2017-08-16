@@ -1,6 +1,7 @@
 FROM debian:stretch-slim
 
-ENV LANG=en_US.UTF-8
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     athena-jot \
@@ -22,18 +23,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     uml-utilities \
   && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /tmp
-RUN pip3 install setuptools wheel \
-  && pip3 install --requirement /tmp/requirements.txt \
-  && rm -rf ~/.cache/pip /tmp/requirements.txt
+COPY Pipfile Pipfile.lock /pipenv/
+WORKDIR /pipenv
 
-COPY src /src
-COPY entrypoint.sh /usr/local/bin
-
-RUN groupadd --system mitm \
-  && useradd --system --gid mitm mitm \
+RUN groupadd mitm \
+  && useradd --gid mitm --create-home mitm \
+  && pip3 install --system setuptools wheel \
+  && pip3 install --system pipenv \
+  && sudo -u mitm pipenv install --three \
   && mkdir /certs \
-  && chown -R mitm:mitm /certs
+  && chown -R mitm:mitm /certs /pipenv
 
+COPY entrypoint.sh /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 2222
