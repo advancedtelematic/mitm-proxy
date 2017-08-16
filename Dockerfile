@@ -1,20 +1,39 @@
-FROM mitmproxy/mitmproxy:2.0
+FROM debian:stretch-slim
 
-COPY ./ /src/tuf-mitm-proxy
+ENV LANG=en_US.UTF-8
 
-RUN apk add --no-cache --virtual gcc && \
-    apk add --no-cache --virtual python3-dev && \
-    apk add --no-cache --virtual musl-dev 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    athena-jot \
+    bridge-utils \
+    build-essential \
+    iproute2 \
+    iptables \
+    libffi-dev \
+    libssl-dev\
+    net-tools \
+    procps \
+    python3-dev \
+    python3-pip \
+    qemu-kvm \
+    qemu-utils \
+    ssh \
+    sudo \
+    tcpdump \
+    uml-utilities \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m ensurepip && \
-    LDFLAGS=-L/lib pip3 install -r /src/tuf-mitm-proxy/requirements.txt
+COPY requirements.txt /tmp
+RUN pip3 install setuptools wheel \
+  && pip3 install --requirement /tmp/requirements.txt \
+  && rm -rf ~/.cache/pip /tmp/requirements.txt
 
-RUN apk del --purge \
-        gcc \
-        python3-dev \
-        musl-dev && \
-    rm -rf ~/.cache/pip /tmp/*
+COPY src /src
+COPY entrypoint.sh /usr/local/bin
 
-WORKDIR /src/tuf-mitm-proxy/scripts
+RUN groupadd --system mitm \
+  && useradd --system --gid mitm mitm \
+  && mkdir /certs \
+  && chown -R mitm:mitm /certs
 
-CMD ["mitmproxy"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+EXPOSE 2222
