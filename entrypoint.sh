@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -xeuo pipefail
 
 
 # set up the qemu network bridge
@@ -19,7 +19,7 @@ ifconfig tap0 0.0.0.0 promisc up
 
 # start the qemu image in the background
 qemu-system-x86_64 \
-  -bios "${BIOS_FILE:-/qemu/u-boot.rom}" \
+  -bios "${BIOS_FILE:-/qemu/u-boot-qemux86-64.rom}" \
   -drive file="${IMAGE_FILE:-/qemu/core-image-minimal-qemux86-64.otaimg}",if=ide,format=raw,snapshot=on \
   -m 1G \
   -nographic \
@@ -32,7 +32,7 @@ qemu-system-x86_64 \
 # generate the mitmproxy CA certificate
 openssl genrsa -out /certs/mitmproxy.crt 2048
 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-  -subj "/CN=${CERT_CN:-*.atsgarage.com}" \
+  -subj "/CN=${CERT_CN:-*}" \
   -keyout /certs/mitmproxy.key \
   -out /certs/mitmproxy.crt
 cat /certs/mitmproxy.key /certs/mitmproxy.crt > /certs/mitmproxy-ca.pem

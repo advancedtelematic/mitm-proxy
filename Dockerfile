@@ -7,32 +7,51 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     athena-jot \
     bridge-utils \
     build-essential \
+    ca-certificates \
     iproute2 \
     iptables \
+    libexpat-dev \
     libffi-dev \
+    libmpdec2 \
     libssl-dev\
+    mime-support \
     net-tools \
     procps \
-    python3-dev \
-    python3-pip \
     qemu-kvm \
     qemu-utils \
     ssh \
     sudo \
     tcpdump \
     uml-utilities \
+    wget \
   && rm -rf /var/lib/apt/lists/*
+
+ARG py36_url="https://github.com/chriskuehl/python3.6-debian-stretch/releases/download/v3.6.2-1-deb9u1"
+ARG py36_pkgs="\
+  python3.6_3.6.2-1.deb9u1_amd64 \
+  python3.6-minimal_3.6.2-1.deb9u1_amd64 \
+  python3.6-dev_3.6.2-1.deb9u1_amd64 \
+  libpython3.6_3.6.2-1.deb9u1_amd64 \
+  libpython3.6-minimal_3.6.2-1.deb9u1_amd64 \
+  libpython3.6-stdlib_3.6.2-1.deb9u1_amd64 \
+  libpython3.6-dev_3.6.2-1.deb9u1_amd64 \
+  "
+RUN for pkg in ${py36_pkgs}; do wget "${py36_url}/${pkg}.deb"; done \
+  && dpkg -i *.deb \
+  && ln -fs /usr/bin/python3.6 /usr/bin/python3 \
+  && rm *.deb
 
 COPY Pipfile Pipfile.lock /pipenv/
 WORKDIR /pipenv
 
 RUN groupadd mitm \
   && useradd --gid mitm --create-home mitm \
-  && pip3 install --system setuptools wheel \
-  && pip3 install --system pipenv \
-  && sudo -u mitm pipenv install --three \
+  && wget https://bootstrap.pypa.io/get-pip.py \
+  && python3 get-pip.py \
+  && pip3 install pipenv \
   && mkdir /certs \
-  && chown -R mitm:mitm /certs /pipenv
+  && chown -R mitm:mitm /certs /pipenv \
+  && sudo -u mitm pipenv install --three
 
 COPY entrypoint.sh /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
