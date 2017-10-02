@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f94cbf375fa72974ae7eb71b45784c4bb2727740010308d38068bfb9f94f0e8a"
+            "sha256": "8c52d8ce45c581465942268d470921e13a8a72e07ed643691a70b6096462e74a"
         },
         "requires": {
             "python_version": "3.6"
@@ -19,9 +19,6 @@
         },
         "asn1crypto": {
             "version": "==0.23.0"
-        },
-        "attrs": {
-            "version": "==17.2.0"
         },
         "blinker": {
             "version": "==1.4"
@@ -48,10 +45,7 @@
             "version": "==0.2.0"
         },
         "construct": {
-            "version": "==2.8.14"
-        },
-        "coverage": {
-            "version": "==4.4.1"
+            "version": "==2.8.16"
         },
         "cryptography": {
             "version": "==1.8.2"
@@ -65,17 +59,8 @@
         "editorconfig": {
             "version": "==0.12.1"
         },
-        "first": {
-            "version": "==2.0.1"
-        },
         "flake8": {
             "version": "==3.4.1"
-        },
-        "flake8-mypy": {
-            "version": "==17.8.0"
-        },
-        "flask": {
-            "version": "==0.12.2"
         },
         "frozendict": {
             "version": "==1.2"
@@ -98,11 +83,8 @@
         "idna": {
             "version": "==2.6"
         },
-        "itsdangerous": {
-            "version": "==0.24"
-        },
-        "jinja2": {
-            "version": "==2.9.6"
+        "iso8601": {
+            "version": "==0.1.12"
         },
         "jsbeautifier": {
             "version": "==1.6.14"
@@ -110,17 +92,11 @@
         "kaitaistruct": {
             "version": "==0.6"
         },
-        "markupsafe": {
-            "version": "==1.0"
-        },
         "mccabe": {
             "version": "==0.6.1"
         },
         "mitmproxy": {
             "version": "==2.0.2"
-        },
-        "mypy": {
-            "version": "==0.521"
         },
         "packaging": {
             "version": "==16.8"
@@ -132,19 +108,13 @@
             "version": "==0.1.2"
         },
         "pew": {
-            "version": "==0.1.26"
+            "version": "==0.1.27"
         },
         "pip": {
             "version": "==9.0.1"
         },
-        "pip-tools": {
-            "version": "==1.10.1"
-        },
         "pipenv": {
-            "version": "==8.1.4"
-        },
-        "py": {
-            "version": "==1.4.34"
+            "version": "==8.2.6"
         },
         "pyasn1": {
             "version": "==0.2.3"
@@ -167,29 +137,11 @@
         "pyperclip": {
             "version": "==1.5.27"
         },
-        "pyrsistent": {
-            "version": "==0.13.0"
-        },
-        "pytest": {
-            "version": "==3.2.2"
-        },
-        "pytest-cov": {
-            "version": "==2.5.1"
-        },
-        "pytest-flake8": {
-            "version": "==0.8.1"
-        },
-        "pythonz-bd": {
-            "version": "==1.11.4"
-        },
         "pyyaml": {
             "version": "==3.12"
         },
         "requests": {
             "version": "==2.18.4"
-        },
-        "resumable-urlretrieve": {
-            "version": "==0.1.5"
         },
         "rsa": {
             "version": "==3.4.2"
@@ -212,8 +164,8 @@
         "tornado": {
             "version": "==4.4.3"
         },
-        "typed-ast": {
-            "version": "==1.0.4"
+        "tuf": {
+            "version": "==0.10.0"
         },
         "urllib3": {
             "version": "==1.22"
@@ -229,10 +181,50 @@
         },
         "watchdog": {
             "version": "==0.8.3"
-        },
-        "werkzeug": {
-            "version": "==0.12.2"
         }
     },
-    "develop": {}
+    "develop": {
+        "attrs": {
+            "version": "==17.2.0"
+        },
+        "coverage": {
+            "version": "==4.4.1"
+        },
+        "flake8": {
+            "version": "==3.4.1"
+        },
+        "flake8-mypy": {
+            "version": "==17.8.0"
+        },
+        "mccabe": {
+            "version": "==0.6.1"
+        },
+        "mypy": {
+            "version": "==0.521"
+        },
+        "py": {
+            "version": "==1.4.34"
+        },
+        "pycodestyle": {
+            "version": "==2.3.1"
+        },
+        "pyflakes": {
+            "version": "==1.5.0"
+        },
+        "pytest": {
+            "version": "==3.2.2"
+        },
+        "pytest-cov": {
+            "version": "==2.5.1"
+        },
+        "pytest-flake8": {
+            "version": "==0.8.1"
+        },
+        "setuptools": {
+            "version": "==36.5.0"
+        },
+        "typed-ast": {
+            "version": "==1.0.4"
+        }
+    }
 }
