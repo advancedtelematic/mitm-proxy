@@ -29,8 +29,8 @@ env_%: # Check that an environment variable is set
 	@: $(if ${${*}},,$(error Set the '$*' environment variable))
 
 test: ## Run the local test suite.
-	@pipenv run mypy --strict --config-file mypy.conf src/
-	@pipenv run py.test --cov=src --flake8 tests/
+	@pipenv run mypy --strict --config-file setup.cfg src/
+	@pipenv run py.test --cov=src --flake8
 
 image: ## Build the docker image
 	@docker build --tag $(DOCKER_IMG):$(DOCKER_TAG) .

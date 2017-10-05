@@ -1,41 +1,47 @@
-# -*- coding: utf-8 -*-
-import random
+import logging
+import proxy_mode
 
-from argparse import ArgumentParser
-from consecution import Node, Pipeline
-from enum import Enum
-from mitmproxy import ctx
-from mitmproxy.http import HTTPFlow as Flow
+from argparse import ArgumentParser, Namespace
+from logging import config
 from os import path
+from typing import Any
+
+log = logging.getLogger(__name__)
 
 
-class Mode(Enum):
-    """Enumeration of all proxy modes."""
-    Passive = Pipeline()
-
-
-def start() -> int:
+def start() -> Any:
     """Entry point for mitmproxy."""
-    parser = ArgumentParser(path.basename(__file__), description="mitmproxy request/response mutation")
-    parser.add_argument('--mode', '-m', help="Start the proxy in the following mode.",
-                        choices=list(Mode), default=Mode.Passive)
+    setup_logging()
+    args = parse_args()
 
-    args = parser.parse_args()
-    proxy = Proxy(args.mode)
-    return proxy.run()
+    log.info(f"Staring proxy with mode: {args.mode}")
+    return args.mode
 
 
-class Proxy:
-    """Mutate HTTP requests and responses based on the proxy mode."""
-    def __init__(self, mode: Mode) -> None:
-        self.set_mode(mode)
+def parse_args() -> Namespace:
+    parser = ArgumentParser(path.basename(__file__),
+                            description="MITM proxy for intercepting TUF metadata")
+    parser.add_argument('--mode', '-m',
+                        help="Start the proxy in the following mode.",
+                        choices=list(proxy_mode.modes),
+                        default=proxy_mode.AlterSigned)
+    return parser.parse_args()
 
-    def set_mode(self, mode: Mode) -> None:
-        self.mode = mode
 
-    def run(self) -> int:
-        return 0
-
-    def response(self, flow: Flow) -> None:
-        """Proxy response handler."""
-        flow.response.headers['x-tuf-mitm-proxy'] = 'true'
+def setup_logging() -> None:
+    config.dictConfig(dict(
+        formatters={
+            'f': {'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'}
+        },
+        handlers={
+            'h': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'f',
+                'level': logging.DEBUG
+            }
+        },
+        root={
+            'handlers': ['h'],
+            'level': logging.DEBUG,
+        },
+    ))
