@@ -50,7 +50,7 @@ def test_read_metadata() -> None:
     assert meta.role == Role.Root
     assert meta.version == 1
     assert len(meta.signatures) == 1
-    assert first(meta.signatures)["keyid"] == KEY_ID
+    assert first(meta.signatures).keyid == KEY_ID
 
     for _, [], files in os.walk(META_DIR):
         for filename in files:
