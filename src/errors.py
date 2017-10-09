@@ -1,4 +1,3 @@
-from typing import Any, Type
 
 
 class ProxyError(Exception):
@@ -15,14 +14,12 @@ class ContentTypeError(ProxyError):
         return f"Expected content-type {self.expected}, got {self.got}"
 
 
-class DataTypeError(ProxyError):
-    def __init__(self, name: str, expected: Type[Any], got: Type[Any]) -> None:
-        self.name = name
-        self.expected = expected
-        self.got = got
+class InvalidKeyIdError(ProxyError):
+    def __init__(self, keyid: str) -> None:
+        self.keyid = keyid
 
     def __str__(self) -> str:
-        return f"Expected {self.name} to be of type {self.expected}, got {self.got}"
+        return f"Invalid keyid: {self.keyid}"
 
 
 class MissingFieldError(ProxyError):

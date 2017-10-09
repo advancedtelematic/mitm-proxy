@@ -8,5 +8,5 @@ Error = Type[ProxyError]
 # Any readable type.
 Readable = Union[str, bytes, bytearray]
 
-# A parsed JSON object.
+# Simple JSON object definition as recursive types are not yet supported.
 Json = Dict[str, Any]
