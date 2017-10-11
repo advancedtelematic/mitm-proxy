@@ -11,12 +11,6 @@ from typing import Any, Callable
 META_DIR = "tests/metadata"
 KEY_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
-def assert_ok(f: Callable, *args: Any) -> None:
-    try:
-        f(*args)
-    except Exception as e:
-        pytest.fail(f"unexpected exception: {e}")
-
 def assert_raises(e: Error, f: Callable, *args: Any) -> None:
     with pytest.raises(e):
         f(*args)
@@ -55,7 +49,7 @@ def test_read_metadata() -> None:
     for _, [], files in os.walk(META_DIR):
         for filename in files:
             with open(f"{META_DIR}/{filename}", "rb") as fd:
-                assert_ok(Metadata.from_readable, fd.read())
+                Metadata.from_readable(fd.read())
 
 
 def test_targets_metadata() -> None:

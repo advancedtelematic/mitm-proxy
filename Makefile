@@ -28,6 +28,10 @@ help: ## Print this message and exit
 env_%: # Check that an environment variable is set
 	@: $(if ${${*}},,$(error Set the '$*' environment variable))
 
+init: # Install pipenv and the project dependencies.
+	@command -v pipenv >/dev/null || pip install pipenv
+	@pipenv check || pipenv install
+
 test: ## Run the local test suite.
 	@pipenv run mypy --strict --config-file setup.cfg src/
 	@pipenv run py.test --cov=src --flake8
