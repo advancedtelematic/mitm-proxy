@@ -30,7 +30,7 @@ env_%: # Check that an environment variable is set
 
 init: # Install pipenv and the project dependencies.
 	@command -v pipenv >/dev/null || pip install pipenv
-	@pipenv check || pipenv install
+	@pipenv check || pipenv install --dev
 
 test: ## Run the local test suite.
 	@pipenv run mypy --strict --config-file setup.cfg src/

@@ -4,7 +4,7 @@ import logging
 from enum import Enum
 from errors import ContentTypeError, InvalidKeyIdError, UnknownRoleError
 from mitmproxy.http import HTTPFlow
-from my_types import Json, Readable
+from my_types import Contains, Json, Readable, canonical
 from typing import Optional, Sequence as Seq
 
 log = logging.getLogger(__name__)
@@ -17,20 +17,23 @@ class Metadata(object):
     expires: str
     version: int
     targets: Seq['Target']
+    extra: Json
 
     def __init__(self, meta: Json) -> None:
-        Json(meta).contains("signatures", "signed")
-        self.signatures = [Signature(sig) for sig in meta["signatures"]]
+        Contains(meta)("signatures", "signed")
+        self.signatures = [Signature(sig) for sig in meta.pop("signatures")]
 
-        signed = Json(meta["signed"])
-        signed.contains("_type", "expires", "version")
-        self.role = Role.parse(signed["_type"])
-        self.expires = signed["expires"]
-        self.version = signed["version"]
+        signed = meta.pop("signed")
+        Contains(signed)("_type", "expires", "version")
+        self.role = Role.parse(signed.pop("_type"))
+        self.expires = signed.pop("expires")
+        self.version = signed.pop("version")
 
         if self.role is Role.Targets:
-            signed.contains("targets")
-            self.targets = [Target(path, meta) for path, meta in signed["targets"].items()]
+            Contains(signed)("targets")
+            self.targets = [Target(path, meta) for path, meta in signed.pop("targets").items()]
+
+        self.extra = signed
 
     @classmethod
     def from_flow(cls, flow: HTTPFlow) -> 'Metadata':
@@ -44,6 +47,26 @@ class Metadata(object):
     def from_readable(cls, data: Readable) -> 'Metadata':
         """Parse the readable JSON data into a new instance."""
         return cls(json.loads(data))
+
+    def to_json(self) -> str:
+        """Convert this instance to a JSON bytes representation."""
+        return canonical(self._encode())
+
+    def _encode(self) -> Json:
+        out: Json = {
+            "signatures": [sig._encode() for sig in self.signatures],
+            "signed": {
+                "_type": self.role.name,
+                "expires": self.expires,
+                "version": self.version,
+            }
+        }
+
+        if self.role is Role.Targets:
+            out["signed"]["targets"] = {target.filepath: target._encode() for target in self.targets}
+
+        out["signed"].update(self.extra)
+        return out
 
 
 class Role(Enum):
@@ -60,6 +83,7 @@ class Role(Enum):
         except ValueError:
             raise UnknownRoleError(name)
 
+
 class KeyId(str):
     """A valid KeyId of 64 hex digits"""
     def __new__(cls, keyid: str) -> str:
@@ -71,15 +95,24 @@ class KeyId(str):
             raise InvalidKeyIdError(keyid)
         return keyid
 
+
 class Signature(object):
-    """A signature of RawMetadata's signed field."""
+    """A signature of metadata."""
     keyid: KeyId
     sig: str
+    extra: Json
 
     def __init__(self, meta: Json) -> None:
-        Json(meta).contains("keyid", "sig")
-        self.keyid = KeyId(meta["keyid"])
-        self.sig = meta["sig"]
+        Contains(meta)("keyid", "sig")
+        self.keyid = KeyId(meta.pop("keyid"))
+        self.sig = meta.pop("sig")
+        self.extra = meta
+
+    def _encode(self) -> Json:
+        out: Json = {"keyid": self.keyid, "sig": self.sig}
+        out.update(self.extra)
+        return out
+
 
 class Target(object):
     """An installation target."""
@@ -87,10 +120,19 @@ class Target(object):
     length: int
     hashes: Json
     custom: Optional[Json]
+    extra: Json
 
     def __init__(self, filepath: str, meta: Json) -> None:
-        Json(meta).contains("length", "hashes")
+        Contains(meta)("length", "hashes")
         self.filepath = filepath
-        self.length = meta["length"]
-        self.hashes = meta["hashes"]
-        self.custom = meta.get("custom")
+        self.length = meta.pop("length")
+        self.hashes = meta.pop("hashes")
+        self.custom = meta.pop("custom", None)
+        self.extra = meta
+
+    def _encode(self) -> Json:
+        out: Json = {"length": self.length, "hashes": self.hashes}
+        if self.custom:
+            out["custom"] = self.custom
+        out.update(self.extra)
+        return out

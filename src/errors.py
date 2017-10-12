@@ -1,11 +1,11 @@
 
 
-class ProxyError(Exception):
+class Error(Exception):
     """The base class for proxy errors."""
     pass
 
 
-class ContentTypeError(ProxyError):
+class ContentTypeError(Error):
     def __init__(self, expected: str, got: str) -> None:
         self.expected = expected
         self.got = got
@@ -14,7 +14,7 @@ class ContentTypeError(ProxyError):
         return f"Expected content-type {self.expected}, got {self.got}"
 
 
-class InvalidKeyIdError(ProxyError):
+class InvalidKeyIdError(Error):
     def __init__(self, keyid: str) -> None:
         self.keyid = keyid
 
@@ -22,7 +22,7 @@ class InvalidKeyIdError(ProxyError):
         return f"Invalid keyid: {self.keyid}"
 
 
-class MissingFieldError(ProxyError):
+class MissingFieldError(Error):
     def __init__(self, name: str, field: str) -> None:
         self.name = name
         self.field = field
@@ -31,7 +31,7 @@ class MissingFieldError(ProxyError):
         return f"{self.name} missing field: {self.field}"
 
 
-class UnknownRoleError(ProxyError):
+class UnknownRoleError(Error):
     def __init__(self, name: str) -> None:
         self.name = name
 
