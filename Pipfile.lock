@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "67e2d881794c88f47c7f1e65f8023e611cd482eb1ef42635fab53756ecb4e7d2"
+            "sha256": "02a11ea06e4e4ff992a09fdfe904e256c704df08d35bada6c93af4a2ae9173fd"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -299,16 +299,16 @@
         },
         "pew": {
             "hashes": [
-                "sha256:fe4529f5e9898eabf22cefd3bf20436dd5df147a7bf0dbc1265e4aefd08d3f06",
-                "sha256:b614b52cd9f69e2dc657ed12b305333deb775e2c1539aeab8f9657078d6a035c"
+                "sha256:20a8b4c448d1db50486c040b1be7c917f9f691507d6021c59c752f8b40ba46af",
+                "sha256:d0f9d127cf321c959bb857e59080f7eaa59c8bbeb2d53aa07d3350aae50e1f2d"
             ],
-            "version": "==1.0.2"
+            "version": "==1.1.0"
         },
         "pipenv": {
             "hashes": [
-                "sha256:0ff32a7105c622a107bb80b8cdea8dcff93b526ae9afe628467a07e327a24a6a"
+                "sha256:f5fb18d22c3252c6778a1e741476bae841f5cf966b88527d55fd3f8c8dee9323"
             ],
-            "version": "==8.2.6"
+            "version": "==8.2.7"
         },
         "pyasn1": {
             "hashes": [
@@ -465,6 +465,18 @@
                 "sha256:cfcec03e36de25a1073e2e35c2c7b0cc6969b85745715c3a025a31d9786896a1"
             ],
             "version": "==1.3.1"
+        },
+        "uvloop": {
+            "hashes": [
+                "sha256:c29d8203fff2eb2d5e5b6d6a9bba008c39bd425117cc460914b58b0326d660d9",
+                "sha256:fd5ce82603a328c8029d10faf58714e8377ecd313f6e1244f128a89cecbcc532",
+                "sha256:04ab8d1ff18ebc8fd649742299557c1de1656c27e2b6e291c42443e4479d0878",
+                "sha256:6b21fb185a9ed9e9dd60694585e6cc88a5d510779eacc37ce6d10821cdc3f68b",
+                "sha256:a08921f636665295d62a233422895cb2c402264f1448f9d548ad9f0e0aed817e",
+                "sha256:743054284de305d292076496ed3b7fd3b353fba5fe7ff8294774a5bc0cc933e9",
+                "sha256:923b6e4982aea14a23565e6e62335a691b7a939bcc6802fbafa2a146ee3e8ac3"
+            ],
+            "version": "==0.8.1"
         },
         "virtualenv": {
             "hashes": [

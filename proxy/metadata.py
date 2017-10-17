@@ -4,8 +4,8 @@ import logging
 from enum import Enum
 from errors import ContentTypeError, InvalidKeyIdError, UnknownRoleError
 from mitmproxy.http import HTTPFlow
-from my_types import Contains, Json, Readable, canonical
 from typing import Optional, Sequence as Seq
+from utils import Json, Readable, canonical, contains
 
 log = logging.getLogger(__name__)
 
@@ -20,18 +20,19 @@ class Metadata(object):
     extra: Json
 
     def __init__(self, meta: Json) -> None:
-        Contains(meta)("signatures", "signed")
+        contains(meta, "signatures", "signed")
         self.signatures = [Signature(sig) for sig in meta.pop("signatures")]
 
         signed = meta.pop("signed")
-        Contains(signed)("_type", "expires", "version")
+        contains(signed, "_type", "expires", "version")
         self.role = Role.parse(signed.pop("_type"))
         self.expires = signed.pop("expires")
         self.version = signed.pop("version")
 
         if self.role is Role.Targets:
-            Contains(signed)("targets")
-            self.targets = [Target(path, meta) for path, meta in signed.pop("targets").items()]
+            contains(signed, "targets")
+            targets = signed.pop("targets")
+            self.targets = [Target(path, meta) for path, meta in targets.items()]
 
         self.extra = signed
 
@@ -49,8 +50,8 @@ class Metadata(object):
         return cls(json.loads(data))
 
     def to_json(self) -> str:
-        """Convert this instance to a JSON bytes representation."""
-        return canonical(self._encode())
+        """Convert the instance back to JSON."""
+        return str(canonical(self._encode()))
 
     def _encode(self) -> Json:
         out: Json = {
@@ -63,7 +64,9 @@ class Metadata(object):
         }
 
         if self.role is Role.Targets:
-            out["signed"]["targets"] = {target.filepath: target._encode() for target in self.targets}
+            out["signed"]["targets"] = {
+                target.filepath: target._encode() for target in self.targets
+            }
 
         out["signed"].update(self.extra)
         return out
@@ -103,7 +106,7 @@ class Signature(object):
     extra: Json
 
     def __init__(self, meta: Json) -> None:
-        Contains(meta)("keyid", "sig")
+        contains(meta, "keyid", "sig")
         self.keyid = KeyId(meta.pop("keyid"))
         self.sig = meta.pop("sig")
         self.extra = meta
@@ -123,7 +126,7 @@ class Target(object):
     extra: Json
 
     def __init__(self, filepath: str, meta: Json) -> None:
-        Contains(meta)("length", "hashes")
+        contains(meta, "length", "hashes")
         self.filepath = filepath
         self.length = meta.pop("length")
         self.hashes = meta.pop("hashes")

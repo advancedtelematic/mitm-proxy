@@ -1,6 +1,6 @@
 from .signed import AlterSigned
 
 
-modes = [
+available_modes = [
     AlterSigned,
 ]

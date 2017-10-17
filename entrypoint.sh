@@ -71,4 +71,4 @@ exec sudo -u mitm pipenv run \
   --cadir=/certs \
   --client-certs=/certs/device.pem \
   --upstream-trusted-ca=/certs/ca.crt \
-  --script /pipenv/src/proxy.py
+  --script /pipenv/proxy/main.py

@@ -10,7 +10,7 @@ DOCKER_RUN := \
 		--privileged \
 		--publish 2222:$(QEMU_PORT) \
 		--volume $(IMAGE_DIR):/qemu \
-		--volume $(CURDIR)/src:/pipenv/src \
+		--volume $(CURDIR)/proxy:/pipenv/proxy \
 		$(DOCKER_IMG):$(DOCKER_TAG)
 
 SSH_HOST := root@localhost
@@ -28,13 +28,13 @@ help: ## Print this message and exit
 env_%: # Check that an environment variable is set
 	@: $(if ${${*}},,$(error Set the '$*' environment variable))
 
-init: # Install pipenv and the project dependencies.
+init: ## Install pipenv and the project dependencies.
 	@command -v pipenv >/dev/null || pip install pipenv
-	@pipenv check || pipenv install --dev
+	@pipenv install --dev
 
 test: ## Run the local test suite.
-	@pipenv run mypy --strict --config-file setup.cfg src/
-	@pipenv run py.test --cov=src --flake8
+	@pipenv run mypy --strict --config-file setup.cfg proxy/
+	@pipenv run py.test --cov=proxy --flake8
 
 image: ## Build the docker image
 	@docker build --tag $(DOCKER_IMG):$(DOCKER_TAG) .
@@ -42,5 +42,5 @@ image: ## Build the docker image
 start: image env_IMAGE_DIR ## Start the docker image
 	@$(DOCKER_RUN)
 
-ssh: ## SSH into the qemu image
+ssh: ## SSH into qemu running inside docker
 	@$(SSH)

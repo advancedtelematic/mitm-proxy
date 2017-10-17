@@ -4,13 +4,12 @@ import pytest
 
 from errors import Error, InvalidKeyIdError, MissingFieldError, UnknownRoleError
 from metadata import Metadata, Role
-from my_types import canonical
 from typing import Any, Callable, Type
+from utils import canonical
 
 
-META_DIR = "tests/metadata"
+META_DIR = "fixtures/metadata"
 KEY_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-
 
 def assert_raises(e: Type[Error], f: Callable, *args: Any) -> None:
     with pytest.raises(e):
@@ -80,6 +79,6 @@ def test_encode_json() -> None:
         for filename in files:
             with open(f"{META_DIR}/{filename}", "rb") as fd:
                 data = fd.read()
-                meta_parsing = Metadata.from_readable(data).to_json()
+                meta_parsing = Metadata.from_readable(data)
                 json_parsing = canonical(json.loads(data))
-                assert meta_parsing == json_parsing
+                assert meta_parsing.to_json() == json_parsing

@@ -11,6 +11,7 @@ ed25519 = "*"
 mitmproxy = "*"
 pipenv = "*"
 rsa = "*"
+sanic = "*"
 
 [dev-packages]
 flake8 = "*"
@@ -20,4 +21,3 @@ mypy_extensions = "*"
 pytest = "*"
 pytest-flake8 = "*"
 pytest-cov = "*"
-typing-extensions = "*"

@@ -12,12 +12,11 @@ Readable = Union[str, bytes, bytearray]
 # Basic JSON type as recursive types are not yet supported."""
 Json = Dict[str, Any]
 
-class Contains(Json):
+def contains(obj: Json, *fields: str) -> None:
     """Verify that each field exists in the object."""
-    def __call__(self, *fields: str) -> None:
-        for field in fields:
-            if field not in self:
-                raise MissingFieldError(repr(self), field)
+    for field in fields:
+        if field not in obj:
+            raise MissingFieldError(repr(obj), field)
 
 
 class Encodable(Protocol):

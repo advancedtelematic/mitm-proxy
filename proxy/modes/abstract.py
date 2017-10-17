@@ -1,7 +1,7 @@
 from mitmproxy.http import HTTPFlow
 
 
-class ProxyMode(object):
+class AbstractMode(object):
     """The base class for all proxy processing modes."""
     def __init__(self, name: str) -> None:
         self.name = name
