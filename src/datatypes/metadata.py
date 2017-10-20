@@ -66,7 +66,7 @@ class Metadata(object):
 
     def to_json(self) -> str:
         """Convert the instance back to JSON."""
-        return canonical(self._encode())
+        return str(canonical(self._encode()))
 
     def _encode(self) -> Dict[str, Any]:
         out: Dict[str, Any] = {
