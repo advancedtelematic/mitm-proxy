@@ -1,39 +1,45 @@
-FROM debian:stretch-slim
+FROM debian:buster-slim
 
-ENV LANG=en_US.UTF-8
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     athena-jot \
     bridge-utils \
     build-essential \
+    ca-certificates \
     iproute2 \
     iptables \
+    libexpat-dev \
     libffi-dev \
+    libmpdec2 \
     libssl-dev\
+    mime-support \
     net-tools \
     procps \
-    python3-dev \
-    python3-pip \
+    python3.6-dev \
     qemu-kvm \
     qemu-utils \
     ssh \
     sudo \
     tcpdump \
     uml-utilities \
+    wget \
   && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /tmp
-RUN pip3 install setuptools wheel \
-  && pip3 install --requirement /tmp/requirements.txt \
-  && rm -rf ~/.cache/pip /tmp/requirements.txt
+COPY Pipfile Pipfile.lock /pipenv/
+WORKDIR /pipenv
 
-COPY src /src
-COPY entrypoint.sh /usr/local/bin
-
-RUN groupadd --system mitm \
-  && useradd --system --gid mitm mitm \
+RUN ln -fs /usr/bin/python3.6 /usr/bin/python3 \
+  && groupadd mitm \
+  && useradd --gid mitm --create-home mitm \
+  && wget https://bootstrap.pypa.io/get-pip.py \
+  && python3 get-pip.py \
+  && pip3 install pipenv \
   && mkdir /certs \
-  && chown -R mitm:mitm /certs
+  && chown -R mitm:mitm /certs /pipenv \
+  && sudo -u mitm pipenv install --three
 
+COPY entrypoint.sh /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 2222

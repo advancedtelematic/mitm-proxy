@@ -1,5 +1,4 @@
-*.swp
-
-# python
-__pycache__
-*.pyc
+.cache/
+.coverage
+.mypy_cache/
+**/__pycache__

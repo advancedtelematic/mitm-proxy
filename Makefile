@@ -10,15 +10,16 @@ DOCKER_RUN := \
 		--privileged \
 		--publish 2222:$(QEMU_PORT) \
 		--volume $(IMAGE_DIR):/qemu \
+		--volume $(CURDIR)/proxy:/pipenv/proxy \
 		$(DOCKER_IMG):$(DOCKER_TAG)
 
 SSH_HOST := root@localhost
-SSH_OPTS := -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet
+SSH_OPTS := -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 SSH := ssh -p $(QEMU_PORT) $(SSH_OPTS) $(SSH_HOST)
 SCP := scp -P $(QEMU_PORT) $(SSH_OPTS)
 
 
-.PHONY: help image run ssh
+.PHONY: help test image start ssh
 .DEFAULT_GOAL := help
 
 help: ## Print this message and exit
@@ -27,11 +28,19 @@ help: ## Print this message and exit
 env_%: # Check that an environment variable is set
 	@: $(if ${${*}},,$(error Set the '$*' environment variable))
 
+init: ## Install pipenv and the project dependencies.
+	@command -v pipenv >/dev/null || pip install pipenv
+	@pipenv install --dev
+
+test: ## Run the local test suite.
+	@pipenv run mypy --strict --config-file setup.cfg proxy/
+	@pipenv run py.test --cov=proxy --flake8
+
 image: ## Build the docker image
 	@docker build --tag $(DOCKER_IMG):$(DOCKER_TAG) .
 
-run: image env_IMAGE_DIR ## Start the docker image
+start: image env_IMAGE_DIR ## Start the docker image
 	@$(DOCKER_RUN)
 
-ssh: ## SSH into the qemu image
+ssh: ## SSH into qemu running inside docker
 	@$(SSH)
