@@ -1,19 +1,13 @@
 import json
 import os
-import pytest
 
-from errors import Error, InvalidKeyIdError, MissingFieldError, UnknownRoleError
-from metadata import Metadata, Role
-from typing import Any, Callable, Type
-from utils import canonical
+from .metadata import Metadata, Role
+from ..errors import InvalidKeyIdError, MissingFieldError, UnknownRoleError
+from ..utils import assert_raises, canonical
 
 
 META_DIR = "fixtures/metadata"
 KEY_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-
-def assert_raises(e: Type[Error], f: Callable, *args: Any) -> None:
-    with pytest.raises(e):
-        f(*args)
 
 
 def test_read_metadata() -> None:

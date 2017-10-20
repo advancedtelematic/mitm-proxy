@@ -10,7 +10,7 @@ DOCKER_RUN := \
 		--privileged \
 		--publish 2222:$(QEMU_PORT) \
 		--volume $(IMAGE_DIR):/qemu \
-		--volume $(CURDIR)/proxy:/pipenv/proxy \
+		--volume $(CURDIR)/src:/pipenv/src \
 		$(DOCKER_IMG):$(DOCKER_TAG)
 
 SSH_HOST := root@localhost
@@ -33,8 +33,11 @@ init: ## Install pipenv and the project dependencies.
 	@pipenv install --dev
 
 test: ## Run the local test suite.
-	@pipenv run mypy --strict --config-file setup.cfg proxy/
-	@pipenv run py.test --cov=proxy --flake8
+	@pipenv run mypy --strict --config-file setup.cfg src/
+	@pipenv run py.test --cov=src --flake8
+
+clean: ## Delete python cache files.
+	@find src -type d -name "*cache*" -exec "rm -rf {}" \;
 
 image: ## Build the docker image
 	@docker build --tag $(DOCKER_IMG):$(DOCKER_TAG) .
