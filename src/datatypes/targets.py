@@ -1,6 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from ..utils import contains
+from ..utils import Encoded, contains
 
 
 class Target(object):
@@ -19,9 +19,24 @@ class Target(object):
         self.custom = meta.pop("custom", None)
         self.extra = meta
 
-    def _encode(self) -> Dict[str, Any]:
+    def _encode(self) -> Encoded:
         out: Dict[str, Any] = {"length": self.length, "hashes": self.hashes}
         if self.custom:
             out["custom"] = self.custom
         out.update(self.extra)
         return out
+
+
+class Targets(object):
+    """Methods for operating on a collection of targets."""
+    items: List[Target]
+
+    def __init__(self, targets: List[Target]) -> None:
+        self.items = targets
+
+    @classmethod
+    def from_dict(cls, obj: Dict[str, Any]) -> 'Targets':
+        return cls([Target(path, meta) for path, meta in obj.items()])
+
+    def _encode(self) -> Encoded:
+        return {target.filepath: target._encode() for target in self.items}

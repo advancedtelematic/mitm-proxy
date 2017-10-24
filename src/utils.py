@@ -2,7 +2,7 @@ import json
 import pytest
 
 from logging import Formatter, LogRecord
-from typing import Any, Callable, Dict, Type, Union
+from typing import Any, Callable, Dict, List, Type, Union
 from typing_extensions import Protocol
 
 from .errors import Error, MissingFieldError
@@ -11,6 +11,17 @@ from .errors import Error, MissingFieldError
 # Any readable type.
 Readable = Union[str, bytes, bytearray]
 
+# An encoded type for formatting.
+Encoded = Union[Dict[str, Any], List[Dict[str, Any]]]
+
+class Encodable(Protocol):
+    def _encode(self) -> Encoded:
+        pass
+
+class Encoder(json.JSONEncoder):
+    def default(self, meta: Encodable) -> Encoded:
+        return meta._encode()
+
 
 def contains(meta: Dict[str, Any], *fields: str) -> None:
     """Verify that each field exists in the metadata object."""
@@ -18,18 +29,9 @@ def contains(meta: Dict[str, Any], *fields: str) -> None:
         if field not in meta:
             raise MissingFieldError(repr(meta), field)
 
-def canonical(meta: Dict[str, Any]) -> str:
-    """Canonicalize the metadata object as a JSON string."""
-    return json.dumps(meta, sort_keys=True, separators=(',', ':'), cls=Encoder)
-
-
-class Encodable(Protocol):
-    def _encode(self) -> Dict[str, Any]:
-        pass
-
-class Encoder(json.JSONEncoder):
-    def default(self, meta: Encodable) -> Dict[str, Any]:
-        return meta._encode()
+def canonical(encoded: Encoded) -> str:
+    """Canonicalize the encoded object as a JSON string."""
+    return json.dumps(encoded, sort_keys=True, separators=(',', ':'), cls=Encoder)
 
 
 class JsonFormatter(Formatter):

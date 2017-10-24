@@ -1,53 +1,46 @@
 import json
 
-from enum import Enum
 from mitmproxy.http import HTTPFlow
-from typing import Any, Dict, List
+from typing import Any, Dict, Optional
 
-from .signature import Signature
-from .targets import Target
+from .signature import Signatures
+from .targets import Targets
 from ..errors import ContentTypeError, UnknownRoleError
-from ..utils import Readable, canonical, contains
+from ..utils import Encoded, Readable, canonical, contains
 
 
-class Role(Enum):
-    """Valid TUF metadata roles."""
-    Root: str = "root"
-    Snapshot: str = "snapshot"
-    Targets: str = "targets"
-    Timestamp: str = "timestamp"
+class Role(str):
+    """A valid TUF metadata role."""
+    VALID = ["root", "snapshot", "targets", "timestamp"]
 
-    @classmethod
-    def parse(cls, name: str) -> 'Role':
-        try:
-            return cls(name.lower())
-        except ValueError:
-            raise UnknownRoleError(name)
+    def __new__(cls, role: str) -> str:
+        if role.lower() not in cls.VALID:
+            raise UnknownRoleError(role)
+        return role
 
 
 class Metadata(object):
     """Parsed TUF metadata."""
-    signatures: List[Signature]
+    signatures: Signatures
     role: Role
     expires: str
     version: int
-    targets: List[Target]
+    targets: Optional[Targets] = None
     extra: Dict[str, Any]
 
     def __init__(self, meta: Dict[str, Any]) -> None:
         contains(meta, "signatures", "signed")
-        self.signatures = [Signature(sig) for sig in meta.pop("signatures")]
+        self.signatures = Signatures.from_dicts(meta.pop("signatures"))
 
         signed = meta.pop("signed")
         contains(signed, "_type", "expires", "version")
-        self.role = Role.parse(signed.pop("_type"))
         self.expires = signed.pop("expires")
         self.version = signed.pop("version")
 
-        if self.role is Role.Targets:
+        self.role = Role(signed.pop("_type"))
+        if self.role.lower() == "targets":
             contains(signed, "targets")
-            targets = signed.pop("targets")
-            self.targets = [Target(path, meta) for path, meta in targets.items()]
+            self.targets = Targets.from_dict(signed.pop("targets"))
 
         self.extra = signed
 
@@ -68,20 +61,18 @@ class Metadata(object):
         """Convert the instance back to JSON."""
         return str(canonical(self._encode()))
 
-    def _encode(self) -> Dict[str, Any]:
+    def _encode(self) -> Encoded:
         out: Dict[str, Any] = {
-            "signatures": [sig._encode() for sig in self.signatures],
+            "signatures": self.signatures._encode(),
             "signed": {
-                "_type": self.role.name,
+                "_type": self.role,
                 "expires": self.expires,
                 "version": self.version,
             }
         }
 
-        if self.role is Role.Targets:
-            out["signed"]["targets"] = {
-                target.filepath: target._encode() for target in self.targets
-            }
+        if self.targets:
+            out["signed"]["targets"] = self.targets._encode()
 
         out["signed"].update(self.extra)
         return out

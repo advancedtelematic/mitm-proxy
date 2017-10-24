@@ -37,7 +37,7 @@ test: ## Run the local test suite.
 	@pipenv run py.test --cov=src --flake8
 
 clean: ## Delete python cache files.
-	@find src -type d -name "*cache*" -exec "rm -rf {}" \;
+	@find src -type d -name "*cache*" -print0 | xargs -0 rm -f
 
 image: ## Build the docker image
 	@docker build --tag $(DOCKER_IMG):$(DOCKER_TAG) .
