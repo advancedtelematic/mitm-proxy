@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:stretch-slim
 
 ENV LANG=C.UTF-8 \
   LC_ALL=C.UTF-8
@@ -17,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     mime-support \
     net-tools \
     procps \
-    python3.6-dev \
     qemu-kvm \
     qemu-utils \
     ssh \
@@ -26,6 +25,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     uml-utilities \
     wget \
   && rm -rf /var/lib/apt/lists/*
+
+ARG py36_url="https://github.com/chriskuehl/python3.6-debian-stretch/releases/download/v3.6.2-1-deb9u1"
+ARG py36_pkgs="\
+  python3.6_3.6.2-1.deb9u1_amd64 \
+  python3.6-minimal_3.6.2-1.deb9u1_amd64 \
+  python3.6-dev_3.6.2-1.deb9u1_amd64 \
+  libpython3.6_3.6.2-1.deb9u1_amd64 \
+  libpython3.6-minimal_3.6.2-1.deb9u1_amd64 \
+  libpython3.6-stdlib_3.6.2-1.deb9u1_amd64 \
+  libpython3.6-dev_3.6.2-1.deb9u1_amd64 \
+  "
+RUN for pkg in ${py36_pkgs}; do wget "${py36_url}/${pkg}.deb"; done \
+  && dpkg -i *.deb \
+  && rm *.deb
 
 COPY Pipfile Pipfile.lock /pipenv/
 WORKDIR /pipenv

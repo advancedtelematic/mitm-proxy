@@ -1,7 +1,7 @@
 # FIXME(PRO-4197): temporary bootstrap script for mitmdump
 from mitmproxy.http import HTTPFlow
 
-from .datatypes import Metadata
+from src.datatypes import Metadata
 
 
 def response(flow: HTTPFlow) -> None:
