@@ -21,12 +21,20 @@ ifconfig tap0 0.0.0.0 promisc up
 qemu-system-x86_64 \
   -bios "${BIOS_FILE:-/qemu/u-boot-qemux86-64.rom}" \
   -drive file="${IMAGE_FILE:-/qemu/core-image-minimal-qemux86-64.otaimg}",if=ide,format=raw,snapshot=on \
-  -m 1G \
+  -m 128M \
   -nographic \
   -net user,hostfwd=tcp::2222-:22,restrict=off \
   -net nic,macaddr="${MAC:-CA-FE-$(jot -w%02X -s- -r 4 1 256)}",model=virtio \
   -net tap,ifname=tap0,script=no,downscript=no \
   &
+
+
+# forward qemu traffic through the proxy
+echo 1 > /proc/sys/net/ipv4/ip_forward
+echo 0 | tee /proc/sys/net/ipv4/conf/*/send_redirects
+
+iptables -t nat -A OUTPUT -o br0 -p tcp -m owner --uid-owner mitm -j ACCEPT
+iptables -t nat -A OUTPUT -o br0 -p tcp -j REDIRECT --to-port 8080
 
 
 # generate the mitmproxy CA certificate
@@ -39,36 +47,29 @@ cat /certs/mitmproxy.key /certs/mitmproxy.crt > /certs/mitmproxy-ca.pem
 
 
 # append the mitmproxy CA certificate to the device CA chain
-DEVICE_CA=${DEVICE_CA:-"/var/sota/ca.crt"}
-DEVICE_PEM=${DEVICE_PEM:-"/var/sota/device.pem"}
-SSH="ssh -p 2222 -o ConnectTimeout=1 -o StrictHostKeyChecking=no -o LogLevel=quiet root@localhost"
-SCP="scp -P 2222 -o StrictHostKeyChecking=no -o LogLevel=quiet"
+SOTA_DIR=${SOTA_DIR:-"/var/sota"}
+ROOT_CERT=${ROOT_CERT:-"root.crt"}
+CLIENT_CERT=${CLIENT_CERT:-"client.pem"}
+SSH="ssh -p 2222 -o ConnectTimeout=10 -o StrictHostKeyChecking=no root@localhost"
+SCP="scp -P 2222 -o ConnectTimeout=10 -o StrictHostKeyChecking=no"
 
-until ${SSH} true; do echo "Waiting for qemu..." && sleep 5; done
-until ${SSH} "[[ -e ${DEVICE_PEM} ]]"; do echo "Waiting for ${DEVICE_PEM}..." && sleep 5; done
+until ${SSH} true; do echo "Waiting for qemu..." && sleep 1; done
+until ${SSH} "[[ -e ${SOTA_DIR}/${CLIENT_CERT} ]]"; do echo "Waiting for ${CLIENT_CERT}..." && sleep 5; done
 
+${SCP} "root@localhost:${SOTA_DIR}/${ROOT_CERT}" /certs
+${SCP} "root@localhost:${SOTA_DIR}/${CLIENT_CERT}" /certs
 ${SSH} "mount -o rw,remount /usr"
 ${SCP} /certs/mitmproxy.crt root@localhost:/usr/share/ca-certificates
-${SCP} "root@localhost:${DEVICE_CA}" /certs
-${SCP} "root@localhost:${DEVICE_PEM}" /certs
 ${SSH} "echo 'mitmproxy.crt' >> /etc/ca-certificates.conf && /usr/sbin/update-ca-certificates"
-${SSH} "cat /usr/share/ca-certificates/mitmproxy.crt >> ${DEVICE_CA}"
-
-
-# forward qemu traffic through the proxy
-echo 1 > /proc/sys/net/ipv4/ip_forward
-echo 0 | tee /proc/sys/net/ipv4/conf/*/send_redirects
-
-iptables -t nat -A OUTPUT -o br0 -p tcp -m owner --uid-owner mitm -j ACCEPT
-iptables -t nat -A OUTPUT -o br0 -p tcp -j REDIRECT --to-port 8080
+${SSH} "cat /usr/share/ca-certificates/mitmproxy.crt >> ${SOTA_DIR}/${ROOT_CERT}"
 
 
 # start the mitmproxy server
 exec sudo -u mitm pipenv run \
-  "${CMD:-mitmproxy}" \
+  "${CMD:-mitmdump}" \
   --transparent \
   --host \
   --cadir=/certs \
-  --client-certs=/certs/device.pem \
-  --upstream-trusted-ca=/certs/ca.crt \
-  --script /pipenv/proxy/main.py
+  --client-certs=/certs/${CLIENT_CERT} \
+  --upstream-trusted-ca=/certs/${ROOT_CERT} \
+  --script /pipenv/src/bootstrap.py

@@ -1,19 +1,13 @@
 import json
 import os
-import pytest
 
-from errors import Error, InvalidKeyIdError, MissingFieldError, UnknownRoleError
-from metadata import Metadata, Role
-from typing import Any, Callable, Type
-from utils import canonical
+from .metadata import Metadata
+from ..errors import InvalidKeyIdError, MissingFieldError, UnknownRoleError
+from ..utils import assert_raises, canonical
 
 
 META_DIR = "fixtures/metadata"
 KEY_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-
-def assert_raises(e: Type[Error], f: Callable, *args: Any) -> None:
-    with pytest.raises(e):
-        f(*args)
 
 
 def test_read_metadata() -> None:
@@ -41,18 +35,19 @@ def test_read_metadata() -> None:
     ok = f'''{{"signatures": [{{"keyid": "{KEY_ID}", "sig": "foo"}}],
                "signed": {{"_type": "root", "expires": "", "version": 1}}}}'''
     meta = Metadata.from_readable(ok)
-    assert meta.role == Role.Root
+    assert meta.role == "root"
     assert meta.version == 1
-    assert len(meta.signatures) == 1
-    assert meta.signatures[0].keyid == KEY_ID
+    assert len(meta.signatures.sigs) == 1
+    assert meta.signatures.sigs[0].keyid == KEY_ID
 
 
 def test_targets_metadata() -> None:
     with open(f"{META_DIR}/targets.json", "rb") as fd:
         meta = Metadata.from_readable(fd.read())
-        assert len(meta.targets) == 2
-        target1 = meta.targets[0]
-        target2 = meta.targets[1]
+        assert meta.targets is not None
+        assert len(meta.targets.items) == 2
+        target1 = meta.targets.items[0]
+        target2 = meta.targets.items[1]
 
         assert target1.filepath == "/file1.txt"
         assert target1.length == 31

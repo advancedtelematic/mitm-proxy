@@ -16,6 +16,7 @@ sanic = "*"
 [dev-packages]
 flake8 = "*"
 flake8-mypy = "*"
+ipython = "*"
 mypy = "*"
 mypy_extensions = "*"
 pytest = "*"
