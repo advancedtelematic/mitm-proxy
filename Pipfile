@@ -8,10 +8,12 @@ python_version = "3.6"
 [packages]
 cytoolz = "*"
 ed25519 = "*"
+hypothesis = "*"
 mitmproxy = "*"
 pipenv = "*"
 rsa = "*"
 sanic = "*"
+typing_extensions = "*"
 
 [dev-packages]
 flake8 = "*"

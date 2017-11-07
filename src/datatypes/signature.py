@@ -60,11 +60,11 @@ class Signature(object):
         """Return the decoded byte representation of the signature."""
         return b64decode(self.sig)
 
-    def random_key(self) -> 'Signature':
+    def randomize_key(self) -> 'Signature':
         """Return a new instance with a random keyid value."""
         return self.replace_key(KeyId.random())
 
-    def random_sig(self) -> 'Signature':
+    def randomize_sig(self) -> 'Signature':
         """Return a new instance with a random sig value."""
         return self.replace_sig(b64encode(os.urandom(128)).decode("UTF-8"))
 
@@ -120,7 +120,7 @@ class Signatures(object):
     def replace_key(self, key: KeyId, replace_with: Signature) -> 'Signatures':
         """Return a new object with the matching keys replaced."""
         matches: Dict[bool, List[Signature]] = groupby(lambda sig: sig.keyid == key, self.sigs)
-        return Signatures(list(concat([matches[False], [replace_with]])))
+        return Signatures(list(concat([matches.get(False, []), [replace_with]])))
 
     def replace_random(self, replace_with: Signature) -> 'Signatures':
         """Return a new object with a randomly selected key replaced."""

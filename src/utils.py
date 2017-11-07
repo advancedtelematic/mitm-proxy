@@ -1,11 +1,10 @@
 import json
-import pytest
 
 from logging import Formatter, LogRecord
-from typing import Any, Callable, Dict, List, Type, Union
+from typing import Any, Dict, List, Union
 from typing_extensions import Protocol
 
-from .errors import Error, MissingFieldError
+from .errors import MissingFieldError
 
 
 # Any readable type.
@@ -38,9 +37,3 @@ class JsonFormatter(Formatter):
     """Write JSON formatted log output."""
     def format(self, record: LogRecord) -> str:
         return json.dumps(record)
-
-
-def assert_raises(e: Type[Error], f: Callable, *args: Any) -> None:
-    """Capture an expected error while testing."""
-    with pytest.raises(e):
-        f(*args)
