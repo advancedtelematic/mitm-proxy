@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from .signature import Signatures
 from .targets import Targets
-from ..errors import ContentTypeError, UnknownRoleError
+from ..errors import UnknownRoleError
 from ..utils import Encoded, Readable, canonical, contains
 
 
@@ -47,9 +47,6 @@ class Metadata(object):
     @classmethod
     def from_flow(cls, flow: HTTPFlow) -> 'Metadata':
         """Convert the HTTPFlow into a new instance."""
-        content_type = flow.response.headers.get('Content-Type')
-        if content_type != "application/json":
-            raise ContentTypeError("application/json", content_type)
         return cls.from_readable(flow.response.content)
 
     @classmethod
@@ -58,7 +55,7 @@ class Metadata(object):
         return cls(json.loads(data))
 
     def to_json(self) -> str:
-        """Convert the instance back to JSON."""
+        """Output this instance as JSON."""
         return str(canonical(self._encode()))
 
     def _encode(self) -> Encoded:

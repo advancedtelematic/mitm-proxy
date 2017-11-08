@@ -35,7 +35,7 @@ class HttpServer(object):
         ensure_future(server)
         try:
             loop.run_forever()
-        except:
+        except Exception:
             loop.stop()
 
     async def _handle_root(self, req: Request) -> HTTPResponse:

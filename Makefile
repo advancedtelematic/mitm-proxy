@@ -1,3 +1,5 @@
+ROOT_CERT ?= root.crt
+CLIENT_CERT ?= client.pem
 QEMU_PORT ?= 2222
 
 DOCKER_IMG := advancedtelematic/tuf-mitm-proxy
@@ -8,9 +10,10 @@ DOCKER_RUN := \
 		--interactive \
 		--tty \
 		--privileged \
-		--publish 2222:$(QEMU_PORT) \
+		--env ROOT_CERT=$(ROOT_CERT) \
+		--env CLIENT_CERT=$(CLIENT_CERT) \
 		--volume $(IMAGE_DIR):/qemu \
-		--volume $(CURDIR)/src:/pipenv/src \
+		--publish 2222:$(QEMU_PORT) \
 		$(DOCKER_IMG):$(DOCKER_TAG)
 
 SSH_HOST := root@localhost
@@ -37,7 +40,7 @@ test: ## Run the local test suite.
 	@pipenv run py.test --cov=src --flake8
 
 clean: ## Delete python cache files.
-	@find src -type d -name "*cache*" -print0 | xargs -0 rm -f
+	@find src -type d -name "*cache*" -print0 | xargs -0 rm -rf
 
 image: ## Build the docker image
 	@docker build --tag $(DOCKER_IMG):$(DOCKER_TAG) .
