@@ -5,7 +5,7 @@ import pytest
 from typing import Any, Callable, Type
 
 from .metadata import Metadata
-from ..errors import Error, InvalidKeyIdError, MissingFieldError, UnknownRoleError
+from ..errors import Error, InvalidKeyId, MissingField, UnknownRole
 from ..utils import canonical
 
 
@@ -26,19 +26,19 @@ def test_read_metadata() -> None:
         '{"signed": [], "signatures": {}}',
         '{"signatures": [{"keyid": "id"}], "signed": {"_type": "root", "expires": "", "version": "1"}}',
     ]:
-        assert_raises(MissingFieldError, Metadata.from_readable, test)
+        assert_raises(MissingField, Metadata.from_readable, test)
 
     for test in [
         '''{"signatures": [{"keyid": "invalid", "sig": "foo"}],
             "signed": {"_type": "root", "expires": "", "version": 1}}'''
     ]:
-        assert_raises(InvalidKeyIdError, Metadata.from_readable, test)
+        assert_raises(InvalidKeyId, Metadata.from_readable, test)
 
     for test in [
         f'''{{"signatures": [{{"keyid": "{KEY_ID}", "sig": "foo"}}],
               "signed": {{"_type": "bad", "expires": "", "version": 1}}}}'''
     ]:
-        assert_raises(UnknownRoleError, Metadata.from_readable, test)
+        assert_raises(UnknownRole, Metadata.from_readable, test)
 
     ok = f'''{{"signatures": [{{"keyid": "{KEY_ID}", "sig": "foo"}}],
                "signed": {{"_type": "root", "expires": "", "version": 1}}}}'''

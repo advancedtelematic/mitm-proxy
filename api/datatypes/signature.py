@@ -7,7 +7,7 @@ from random import choice
 from rsa import PublicKey
 from typing import Any, Dict, List, Optional
 
-from ..errors import InvalidKeyIdError
+from ..errors import InvalidKeyId
 from ..utils import Encoded, contains
 
 
@@ -17,9 +17,9 @@ class KeyId(str):
         try:
             int(keyid, 16)
         except ValueError:
-            raise InvalidKeyIdError(keyid)
+            raise InvalidKeyId(keyid)
         if len(keyid) != 64:
-            raise InvalidKeyIdError(keyid)
+            raise InvalidKeyId(keyid)
         return keyid
 
     @staticmethod

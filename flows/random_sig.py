@@ -1,12 +1,11 @@
 from mitmproxy import ctx
 from mitmproxy.http import HTTPFlow
 
-
-from src.datatypes import Metadata
+from api.datatypes.metadata import Metadata
 
 
 def response(flow: HTTPFlow) -> None:
-    """Example flow that replaces one signature."""
+    """Replace a random response signature."""
 
     if flow.response.headers.get('Content-Type') != "application/json":
         ctx.log.debug("skipping non-json response")

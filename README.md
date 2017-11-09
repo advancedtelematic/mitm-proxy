@@ -6,9 +6,9 @@ Script that does TUF related manipulations via `mitmproxy`.
 
 ### Building and running the Docker image
 
-In the project root run `make image` to build the docker image. This will install Python 3.6 plus all project dependencies. It will also copy over the `src/` directory and `entrypoint.sh` script for starting `mitmproxy`.
+In the project root run `make image` to build the docker image. This will install Python 3.6 plus all project dependencies. It will also copy over the `api/` and `flows/` directory and `start.sh` script for starting the API.
 
-The `entrypoint.sh` script will boot a QEMU image containing the client to test, copy a root certificate into this image and forward all bridged TCP traffic to `mitmproxy`. The image will be booted in snapshot mode so no changes to the image itself will be persisted.
+The `start.sh` script will boot a QEMU image containing the client to test, copy a root certificate into this image and forward all bridged TCP traffic to `mitmproxy`. The image will be booted in snapshot mode so no changes to the image itself will be persisted.
 
 To start this process run `make start`. You will need to set the `IMAGE_DIR` environment variable to the directory containing the QEMU image.
 

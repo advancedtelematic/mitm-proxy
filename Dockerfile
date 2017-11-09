@@ -53,9 +53,10 @@ RUN ln -fs /usr/bin/python3.6 /usr/bin/python3 \
   && chown -R mitm:mitm /certs /pipenv \
   && sudo -u mitm pipenv install --three
 
-COPY entrypoint.sh /usr/local/bin
-COPY entrypoint.py /pipenv
-COPY src /pipenv/src
+COPY start.sh /usr/local/bin
+COPY start.py /pipenv
+COPY api /pipenv/api
+COPY flows /pipenv/flows
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-EXPOSE 2222
+ENTRYPOINT ["/usr/local/bin/start.sh"]
+EXPOSE 2222 5555

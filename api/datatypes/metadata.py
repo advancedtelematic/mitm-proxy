@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from .signature import Signatures
 from .targets import Targets
-from ..errors import UnknownRoleError
+from ..errors import UnknownRole
 from ..utils import Encoded, Readable, canonical, contains
 
 
@@ -15,7 +15,7 @@ class Role(str):
 
     def __new__(cls, role: str) -> str:
         if role.lower() not in cls.VALID:
-            raise UnknownRoleError(role)
+            raise UnknownRole(role)
         return role
 
 

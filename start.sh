@@ -26,22 +26,22 @@ info "Setting up the qemu network bridge..." && {
 info "Generating man-in-the-middle certificates..." && {
   openssl genrsa -out /certs/mitmproxy.crt 2048
   openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-          -subj "/CN=${CERT_CN:-*}" \
-          -keyout /certs/mitmproxy.key \
-          -out /certs/mitmproxy.crt
+    -subj "/CN=${CERT_CN:-*}" \
+    -keyout /certs/mitmproxy.key \
+    -out /certs/mitmproxy.crt
   cat /certs/mitmproxy.key /certs/mitmproxy.crt > /certs/mitmproxy-ca.pem
 }
 
 info "Starting the client qemu image..." && {
   qemu-system-x86_64 \
-      -bios "${BIOS_FILE:-/qemu/u-boot-qemux86-64.rom}" \
-      -drive file="${IMAGE_FILE:-/qemu/core-image-minimal-qemux86-64.otaimg}",if=ide,format=raw,snapshot=on \
-      -m 128M \
-      -nographic \
-      -net user,hostfwd=tcp::2222-:22,restrict=off \
-      -net nic,macaddr="${MAC:-CA-FE-$(jot -w%02X -s- -r 4 1 256)}",model=virtio \
-      -net tap,ifname=tap0,script=no,downscript=no \
-      &
+    -bios "${BIOS_FILE:-/qemu/u-boot-qemux86-64.rom}" \
+    -drive file="${IMAGE_FILE:-/qemu/core-image-minimal-qemux86-64.otaimg}",if=ide,format=raw,snapshot=on \
+    -m 128M \
+    -nographic \
+    -net user,hostfwd=tcp::2222-:22,restrict=off \
+    -net nic,macaddr="${MAC:-CA-FE-$(jot -w%02X -s- -r 4 1 256)}",model=virtio \
+    -net tap,ifname=tap0,script=no,downscript=no \
+    &
 }
 
 info "Fetching the mutual TLS certificates..." && {
@@ -68,7 +68,7 @@ info "Fetching the mutual TLS certificates..." && {
   cat /certs/{"${CLIENT_CERT}","${CLIENT_KEY}"} > /certs/bundle.pem
 }
 
-info "Forwarding all qemu traffic to mitmproxy..." && {
+info "Forwarding qemu traffic to mitmproxy..." && {
   echo 1 > /proc/sys/net/ipv4/ip_forward
   echo 0 | tee /proc/sys/net/ipv4/conf/*/send_redirects
 
@@ -76,13 +76,14 @@ info "Forwarding all qemu traffic to mitmproxy..." && {
   iptables -t nat -A OUTPUT -o br0 -p tcp -j REDIRECT --to-port 8080
 }
 
-info "Starting mitmproxy..." && {
-  exec sudo -u mitm pipenv run \
-       "${CMD:-mitmdump}" \
-       --transparent \
-       --host \
-       --cadir=/certs \
-       --upstream-trusted-ca="/certs/${ROOT_CERT}" \
-       --client-certs="/certs/bundle.pem" \
-       --script /pipenv/entrypoint.py
+info "Starting the API..." && {
+  exec sudo -u mitm \
+    pipenv run python3 /pipenv/start.py \
+    --http.host="${HTTP_HOST:-127.0.0.1}" \
+    --http.port="${HTTP_PORT:-5555}" \
+    --flow.root="${FLOW_ROOT:-/pipenv/flows}" \
+    --flow.initial="${FLOW_INITIAL:-random_sig}" \
+    --mitm.cadir=/certs \
+    --mitm.upstream_trusted_ca="/certs/${ROOT_CERT}" \
+    --mitm.client_certs="/certs/bundle.pem"
 }
