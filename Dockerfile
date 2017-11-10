@@ -51,7 +51,8 @@ RUN ln -fs /usr/bin/python3.6 /usr/bin/python3 \
   && pip3 install pipenv \
   && mkdir /certs \
   && chown -R mitm:mitm /certs /pipenv \
-  && sudo -u mitm pipenv install --three
+  && sudo -u mitm pipenv install --three \
+  && ln -s /pipenv/api $(sudo -u mitm pipenv --venv)/lib/python3.6/site-packages/
 
 COPY start.sh /usr/local/bin
 COPY start.py /pipenv
