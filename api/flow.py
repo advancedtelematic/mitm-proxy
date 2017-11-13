@@ -1,38 +1,48 @@
+import logging as log
+
 from pathlib import Path
 from typing import List, Optional
 
 from .config import Config
-from .errors import InvalidFlowName
+from .errors import InvalidFlowPath
 
 
-class FlowName(str):
+class FlowPath(Path):
     """A valid mitmproxy flow name."""
-    def __new__(cls, path: Path) -> str:
-        if not path.with_suffix(".py").exists:
-            raise InvalidFlowName(path.stem)
-        return path.stem
-
+    def __new__(cls, path: Path) -> Path:
+        path = path.with_suffix(".py")
+        if not path.exists():
+            raise InvalidFlowPath(path)
+        return path
 
 class Flow(object):
     """Control the selected mitmproxy flow."""
     config: Config
-    running: Optional[FlowName] = None
+    running: Optional[FlowPath] = None
 
     def __init__(self, config: Config) -> None:
         self.config = config
 
-    def get_running(self) -> Optional[FlowName]:
-        """Return the currently running flow."""
-        return self.running
+    def find(self, name: str) -> Optional[FlowPath]:
+        """Return the flow if it exists."""
+        try:
+            return FlowPath(self.config.flow["root"] / f"{name}.py")
+        except InvalidFlowPath:
+            log.error(f"flow not found: {name}")
+            return None
 
-    def set_running(self, name: Optional[FlowName]) -> None:
-        """Set the currently running flow."""
-        self.running = name
-
-    def available(self) -> List[FlowName]:
+    def available(self) -> List[str]:
         """Return all currently available flows."""
-        return [FlowName(path) for path in self.config.flow["root"].glob("*.py")]
+        return [FlowPath(path).stem for path in self.config.flow["root"].glob("*.py")]
 
-    def exists(self, name: str) -> bool:
-        """Check if the requested flow name exists."""
-        return name in self.available()
+    def get_running(self) -> Optional[str]:
+        """Return the currently running flow."""
+        if self.running:
+            return self.running.stem
+        else:
+            return None
+
+    def _set_running(self, path: Optional[FlowPath]) -> None:
+        """Internal method to set the currently running flow."""
+        log.debug(f"setting flow path: {path}")
+        self.running = path

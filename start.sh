@@ -79,7 +79,7 @@ info "Forwarding qemu traffic to mitmproxy..." && {
 info "Starting the API..." && {
   exec sudo -u mitm \
     pipenv run python3 /pipenv/start.py \
-    --http.host="${HTTP_HOST:-127.0.0.1}" \
+    --http.host="${HTTP_HOST:-0.0.0.0}" \
     --http.port="${HTTP_PORT:-5555}" \
     --flow.root="${FLOW_ROOT:-/pipenv/flows}" \
     --flow.initial="${FLOW_INITIAL:-random_sig}" \

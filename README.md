@@ -14,6 +14,12 @@ To start this process run `make start`. You will need to set the `IMAGE_DIR` env
 
 By default, it will look for an image named `core-image-minimal-qemux86-64.otaimg` and a bios file name `u-boot-qemux86-64.rom`. These values can be overridden by setting the `IMAGE_FILE` and `BIOS_FILE` environment variables passed to the bootstrap script when starting the image.
 
+### HTTP API
+
+Send a `GET` request to `/available` or `/running` to see the available flows or currently running flow respectively.
+
+Send a `PUT` request to `/start/<name>` to start a new flow (where `<name>` is the flow name). To stop the currently running flow, send a `PUT` request to `/stop`.
+
 ## License
 
 This work is licensed under the MPL2 license.

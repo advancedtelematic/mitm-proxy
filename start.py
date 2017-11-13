@@ -1,4 +1,4 @@
-import logging
+import logging as log
 import sys
 
 from argparse import ArgumentParser
@@ -7,36 +7,23 @@ from typing import Any, Dict
 
 from api.config import Config
 from api.flow import Flow
-from api.http import HttpServer
+from api.http import Server
 from api.proxy import Proxy
 
 
-LOG_FORMAT = "%(levelname)s (%(filename)s:%(lineno)s) @ %(asctime)s: %(message)s"
+LOG_FORMAT = "%(asctime)s - %(levelname)s (%(filename)s:%(lineno)s): %(message)s"
+log.basicConfig(level=log.DEBUG, format=LOG_FORMAT, datefmt="%Y-%m-%dT%H:%M:%S")
 
 def main() -> None:
     """Start the API for controlling mitmproxy."""
     if sys.version_info < (3, 6):
         sys.exit("Python >= 3.6 required")
 
-    log = start_logger()
-    args = parse_args()
-    log.debug(f"starting with arguments: {args}")
-
-    config = Config(args)
+    config = Config(parse_args())
     flow = Flow(config)
     proxy = Proxy(flow)
-    http = HttpServer(proxy)
+    http = Server(proxy)
     http.start()
-
-def start_logger() -> logging.Logger:
-    """Set up project-wide logging."""
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(logging.Formatter(LOG_FORMAT))
-
-    logger = logging.getLogger(__name__)
-    logger.addHandler(handler)
-    return logger
 
 def parse_args() -> Dict[str, Any]:
     """Parse the command-line arguments."""

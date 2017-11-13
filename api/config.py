@@ -1,3 +1,5 @@
+import logging as log
+
 from mypy_extensions import TypedDict
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -13,6 +15,8 @@ class Config(object):
 
     def __init__(self, args: Dict[str, Any]) -> None:
         """Parses the command line arguments into a new instance."""
+        log.debug(f"config args: {args}")
+
         self.http = {
             "host": args["http.host"],
             "port": int(args["http.port"]),

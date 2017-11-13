@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bridge-utils \
     build-essential \
     ca-certificates \
+    curl \
     iproute2 \
     iptables \
     libexpat-dev \
@@ -23,7 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     tcpdump \
     uml-utilities \
-    wget \
   && rm -rf /var/lib/apt/lists/*
 
 ARG py36_url="https://github.com/chriskuehl/python3.6-debian-stretch/releases/download/v3.6.2-1-deb9u1"
@@ -36,7 +36,7 @@ ARG py36_pkgs="\
   libpython3.6-stdlib_3.6.2-1.deb9u1_amd64 \
   libpython3.6-dev_3.6.2-1.deb9u1_amd64 \
   "
-RUN for pkg in ${py36_pkgs}; do wget "${py36_url}/${pkg}.deb"; done \
+RUN for pkg in ${py36_pkgs}; do curl -OL "${py36_url}/${pkg}.deb"; done \
   && dpkg -i *.deb \
   && rm *.deb
 
@@ -46,7 +46,7 @@ WORKDIR /pipenv
 RUN ln -fs /usr/bin/python3.6 /usr/bin/python3 \
   && groupadd mitm \
   && useradd --gid mitm --create-home mitm \
-  && wget https://bootstrap.pypa.io/get-pip.py \
+  && curl -OL https://bootstrap.pypa.io/get-pip.py \
   && python3 get-pip.py \
   && pip3 install pipenv \
   && mkdir /certs \
