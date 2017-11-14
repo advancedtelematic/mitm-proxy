@@ -4,6 +4,7 @@ from base64 import b64decode, b64encode
 from binascii import hexlify
 from copy import deepcopy
 from cytoolz import concat, groupby, remove
+from hashlib import sha256
 from random import choice
 from rsa import PublicKey
 from typing import Any, Dict, List, Optional
@@ -25,8 +26,9 @@ class KeyId(str):
 
     @staticmethod
     def from_pub(pub: PublicKey) -> 'KeyId':
-        # FIXME: ATS-specific keyid parsing
-        return KeyId("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+        hasher = sha256()
+        hasher.update(pub.save_pkcs1(format="DER"))
+        return KeyId(hexlify(hasher.digest()).decode("UTF-8"))
 
     @staticmethod
     def random() -> 'KeyId':
