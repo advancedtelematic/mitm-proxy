@@ -1,25 +1,17 @@
 # tuf-mitm-proxy
 
-Script that does TUF related manipulations via `mitmproxy`.
+This project enables manipulation of [TUF flows](https://theupdateframework.github.io) between the [SOTA Client](https://github.com/advancedtelematic/aktualizr) and [SOTA Server](http://genivi.github.io/rvi_sota_server/) via [mitmproxy](https://mitmproxy.org).
 
 ## Usage
 
-### Building and running the Docker image
+### Starting a transparent proxy
 
-In the project root run `make image` to build the docker image. This will install Python 3.6 plus all project dependencies. It will also copy over the `api/` and `flows/` directory and `start.sh` script for starting the API.
+Run `make` to see the available Makefile commands. To boot a new client QEMU image run `make start` with the `IMAGE_DIR` environment variable set to the directory containing the QEMU image.
 
-The `start.sh` script will boot a QEMU image containing the client to test, copy a root certificate into this image and forward all bridged TCP traffic to `mitmproxy`. The image will be booted in snapshot mode so no changes to the image itself will be persisted.
+By default, `IMAGE_DIR` should contain a QEMU image named `core-image-minimal-qemux86-64.otaimg` and a BIOS file named `u-boot-qemux86-64.rom`, though these can be overridden with `IMAGE_FILE` and `BIOS_FILE` respectively.
 
-To start this process run `make start`. You will need to set the `IMAGE_DIR` environment variable to the directory containing the QEMU image.
-
-By default, it will look for an image named `core-image-minimal-qemux86-64.otaimg` and a bios file name `u-boot-qemux86-64.rom`. These values can be overridden by setting the `IMAGE_FILE` and `BIOS_FILE` environment variables passed to the bootstrap script when starting the image.
-
-### HTTP API
+### Controlling the proxy
 
 Send a `GET` request to `/available` or `/running` to see the available flows or currently running flow respectively.
 
-Send a `PUT` request to `/start/<name>` to start a new flow (where `<name>` is the flow name). To stop the currently running flow, send a `PUT` request to `/stop`.
-
-## License
-
-This work is licensed under the MPL2 license.
+Send a `PUT` request to `/start/<name>` to start a new flow (where `<name>` is the flow name), or send a `PUT` request to `/stop` to stop the currently active flow.

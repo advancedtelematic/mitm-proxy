@@ -22,33 +22,32 @@ class Proxy(object):
         if initial:
             self.start(FlowPath(self.config.flow["root"] / initial))
 
-    def start(self, path: FlowPath) -> None:
+    def start(self, path: FlowPath, cmd: str="mitmdump") -> None:
         """Start the given mitmproxy flow."""
         self.stop()
-        self.process = Popen(self._args(path))
+        self.process = Popen(self._args(path, cmd))
         self.flow._set_running(path)
-        log.debug(f"started mitmproxy pid: {self.process.pid}")
+        log.debug(f"started flow `{path.stem}` @ pid {self.process.pid}")
 
     def stop(self) -> None:
         """Stop any currently running child process."""
         if self.process is None:
             return
         elif self.process.poll() is None:
-            log.debug(f"stopping mitmproxy pid: {self.process.pid}")
+            log.debug(f"stopping flow @ pid {self.process.pid}")
             self.process.kill()
 
-        log.debug(f"mitmproxy pid {self.process.pid} exit code: {self.process.returncode}")
         self.process = None
         self.flow._set_running(None)
 
-    def _args(self, path: FlowPath, cmd: str="mitmdump") -> List[str]:
+    def _args(self, path: FlowPath, cmd: str) -> List[str]:
         """Return the command line arguments used to start mitmproxy."""
-        cmd = f"""pipenv run {cmd}
+        return shlex.split(f"""
+        pipenv run {cmd}
         --transparent
         --host
         --script="{path}"
         --cadir={self.config.mitm["cadir"]}
         --upstream-trusted-ca="{self.config.mitm["upstream_trusted_ca"]}"
         --client-certs="{self.config.mitm["client_certs"]}"
-        """
-        return shlex.split(cmd)
+        """)

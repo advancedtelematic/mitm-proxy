@@ -24,13 +24,13 @@ class Server(object):
         self.config = proxy.config
 
     def start(self) -> None:
-        """Blocking call to start the HTTP server."""
+        """Blocking call that starts the HTTP server."""
         (host, port) = self.config.http["host"], self.config.http["port"]
         log.info(f"Starting an http server at http://{host}:{port}...")
         self.app.run(host=host, port=port)
 
     def _create_app(self) -> Sanic:
-        """Create a new app with attached API routes."""
+        """Create a new app with the following API routes."""
         SanicConfig.LOGO = ""
         app = Sanic(__name__, log_config=log.NOTSET)
 
@@ -42,6 +42,7 @@ class Server(object):
         return app
 
     async def _start(self, req: Request, name: str) -> HTTPResponse:
+        """Start the flow with the given name."""
         flow = self.flow.find(name)
         if not flow:
             return json({"error": "flow not found", "name": f"{name}"}, status=404)
@@ -50,12 +51,15 @@ class Server(object):
         return json({"started": f"{name}"})
 
     async def _stop(self, req: Request) -> HTTPResponse:
+        """Stop any currently running flow."""
         running = self.flow.get_running()
         self.proxy.stop()
         return json({"stopped": f"{running}"})
 
     async def _running(self, req: Request) -> HTTPResponse:
+        """Return the currently running flow."""
         return json({"running": f"{self.flow.get_running()}"})
 
     async def _available(self, req: Request) -> HTTPResponse:
+        """Return a list of the available flows."""
         return json({"available": [name for name in self.flow.available()]})

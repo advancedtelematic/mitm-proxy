@@ -4,7 +4,7 @@ from mypy_extensions import TypedDict
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from .errors import InvalidFlowRoot
+from .errors import InvalidFlowPath
 
 
 class Config(object):
@@ -23,8 +23,8 @@ class Config(object):
         }
 
         root = Path(args["flow.root"])
-        if not root.exists:
-            raise InvalidFlowRoot(root)
+        if not root.exists():
+            raise InvalidFlowPath(root)
         self.flow = {
             "root": root,
             "initial": args.get("flow.initial")

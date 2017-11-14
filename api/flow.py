@@ -8,7 +8,7 @@ from .errors import InvalidFlowPath
 
 
 class FlowPath(Path):
-    """A valid mitmproxy flow name."""
+    """A valid mitmproxy flow path."""
     def __new__(cls, path: Path) -> Path:
         path = path.with_suffix(".py")
         if not path.exists():
@@ -26,7 +26,7 @@ class Flow(object):
     def find(self, name: str) -> Optional[FlowPath]:
         """Return the flow if it exists."""
         try:
-            return FlowPath(self.config.flow["root"] / f"{name}.py")
+            return FlowPath(self.config.flow["root"] / name)
         except InvalidFlowPath:
             log.error(f"flow not found: {name}")
             return None

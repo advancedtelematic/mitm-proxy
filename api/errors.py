@@ -12,13 +12,6 @@ class InvalidFlowPath(Error):
     def __str__(self) -> str:
         return f"Flow path not found: {self.path}"
 
-class InvalidFlowRoot(Error):
-    def __init__(self, root: str) -> None:
-        self.root = root
-
-    def __str__(self) -> str:
-        return f"Root directory not found: {self.root}"
-
 class InvalidKeyId(Error):
     def __init__(self, keyid: str) -> None:
         self.keyid = keyid
