@@ -82,7 +82,7 @@ info "Starting the API..." && {
     --http.host="${HTTP_HOST:-0.0.0.0}" \
     --http.port="${HTTP_PORT:-5555}" \
     --flow.root="${FLOW_ROOT:-/pipenv/flows}" \
-    --flow.initial="${FLOW_INITIAL:-random_sig}" \
+    --flow.initial="${FLOW_INITIAL:-passthrough}" \
     --mitm.cadir=/certs \
     --mitm.upstream_trusted_ca="/certs/${ROOT_CERT}" \
     --mitm.client_certs="/certs/bundle.pem"

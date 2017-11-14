@@ -36,3 +36,10 @@ def test_sigs_replace_key() -> None:
     assert sigs.find(rand_key) is None
     assert sigs.find(new_sig.keyid) is not None
     assert len(sigs.sigs) == 3
+
+def test_sigs_duplicate_key() -> None:
+    sigs = Signatures([sig() for sig in repeat(random_sig, 3)])
+    rand_key = sigs.random().keyid
+    sigs = sigs.duplicate_key(rand_key)
+    assert sigs.find(rand_key) is not None
+    assert len(sigs.sigs) == 4

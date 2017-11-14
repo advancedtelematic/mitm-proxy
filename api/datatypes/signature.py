@@ -2,6 +2,7 @@ import os
 
 from base64 import b64decode, b64encode
 from binascii import hexlify
+from copy import deepcopy
 from cytoolz import concat, groupby, remove
 from random import choice
 from rsa import PublicKey
@@ -125,6 +126,20 @@ class Signatures(object):
     def replace_random(self, replace_with: Signature) -> 'Signatures':
         """Return a new object with a randomly selected key replaced."""
         return self.replace_key(self.random().keyid, replace_with)
+
+    def duplicate_key(self, key: KeyId) -> 'Signatures':
+        """Return a new object with the matching key duplicated."""
+        matches: Dict[bool, List[Signature]] = groupby(lambda sig: sig.keyid == key, self.sigs)
+        try:
+            sig = matches[True][0]
+            copy = deepcopy(sig)
+            return Signatures(list(concat([matches.get(False, []), [sig, copy]])))
+        except KeyError:
+            return Signatures(self.sigs)
+
+    def duplicate_random(self) -> 'Signatures':
+        """Return a new object with a randomly selected key duplicated."""
+        return self.duplicate_key(self.random().keyid)
 
     def _encode(self) -> Encoded:
         return [sig._encode() for sig in self.sigs]  # type: ignore

@@ -55,21 +55,28 @@ class Metadata(object):
         return cls(json.loads(data))
 
     def to_json(self) -> str:
-        """Output this instance as JSON."""
+        """Return the TUF metadata object as JSON."""
         return str(canonical(self._encode()))
 
+    def canonical_signed(self) -> str:
+        """Return the TUF metadata signed section as JSON."""
+        return str(canonical(self._encode_signed()))
+
     def _encode(self) -> Encoded:
-        out: Dict[str, Any] = {
+        """Encode the signatures and the signed section.."""
+        return {
             "signatures": self.signatures._encode(),
-            "signed": {
-                "_type": self.role,
-                "expires": self.expires,
-                "version": self.version,
-            }
+            "signed": self._encode_signed()
         }
 
+    def _encode_signed(self) -> Encoded:
+        """Encode the signed section."""
+        out: Dict[str, Any] = {
+            "_type": self.role,
+            "expires": self.expires,
+            "version": self.version,
+        }
         if self.targets:
-            out["signed"]["targets"] = self.targets._encode()
-
-        out["signed"].update(self.extra)
+            out["targets"] = self.targets._encode()
+        out.update(self.extra)
         return out

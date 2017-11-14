@@ -58,6 +58,7 @@ COPY start.sh /usr/local/bin
 COPY start.py /pipenv
 COPY api /pipenv/api
 COPY flows /pipenv/flows
+COPY fixtures/rsa /unsafe_keys
 
 ENTRYPOINT ["/usr/local/bin/start.sh"]
 EXPOSE 2222 5555
