@@ -79,10 +79,6 @@ class Signature(object):
         """Return a new signature with the sig value replaced."""
         return Signature(self.keyid, sig, extra=self.extra)
 
-    def _append(self, obj: Dict[str, Any]) -> None:
-        """Add additional metadata to the signature"""
-        self.extra.update(obj)
-
     def _encode(self) -> Encoded:
         out: Dict[str, Any] = {"keyid": self.keyid, "sig": self.sig}
         out.update(self.extra)
@@ -123,7 +119,7 @@ class Signatures(object):
     def replace_key(self, key: KeyId, replace_with: Signature) -> 'Signatures':
         """Return a new object with the matching keys replaced."""
         matches: Dict[bool, List[Signature]] = groupby(lambda sig: sig.keyid == key, self.sigs)
-        return Signatures(list(concat([matches.get(False, []), [replace_with]])))
+        return Signatures(list(concat([[replace_with], matches.get(False, [])])))
 
     def replace_random(self, replace_with: Signature) -> 'Signatures':
         """Return a new object with a randomly selected key replaced."""
@@ -135,7 +131,7 @@ class Signatures(object):
         try:
             sig = matches[True][0]
             copy = deepcopy(sig)
-            return Signatures(list(concat([matches.get(False, []), [sig, copy]])))
+            return Signatures(list(concat([[sig, copy], matches.get(False, [])])))
         except KeyError:
             return Signatures(self.sigs)
 
