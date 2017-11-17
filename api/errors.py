@@ -1,28 +1,25 @@
+from pathlib import Path
 
 
 class Error(Exception):
     """The base class for proxy errors."""
     pass
 
-
-class ContentTypeError(Error):
-    def __init__(self, expected: str, got: str) -> None:
-        self.expected = expected
-        self.got = got
+class InvalidFlowPath(Error):
+    def __init__(self, path: Path) -> None:
+        self.path = path
 
     def __str__(self) -> str:
-        return f"Expected content-type {self.expected}, got {self.got}"
+        return f"Flow path not found: {self.path}"
 
-
-class InvalidKeyIdError(Error):
+class InvalidKeyId(Error):
     def __init__(self, keyid: str) -> None:
         self.keyid = keyid
 
     def __str__(self) -> str:
         return f"Invalid keyid: {self.keyid}"
 
-
-class MissingFieldError(Error):
+class MissingField(Error):
     def __init__(self, name: str, field: str) -> None:
         self.name = name
         self.field = field
@@ -30,8 +27,14 @@ class MissingFieldError(Error):
     def __str__(self) -> str:
         return f"{self.name} missing field: {self.field}"
 
+class StillRunning(Error):
+    def __init__(self, pid: int) -> None:
+        self.pid = pid
 
-class UnknownRoleError(Error):
+    def __str__(self) -> str:
+        return f"Process ID already running: {self.pid}"
+
+class UnknownRole(Error):
     def __init__(self, name: str) -> None:
         self.name = name
 

@@ -2,12 +2,14 @@ import os
 
 from base64 import b64decode, b64encode
 from binascii import hexlify
+from copy import deepcopy
 from cytoolz import concat, groupby, remove
+from hashlib import sha256
 from random import choice
 from rsa import PublicKey
 from typing import Any, Dict, List, Optional
 
-from ..errors import InvalidKeyIdError
+from ..errors import InvalidKeyId
 from ..utils import Encoded, contains
 
 
@@ -17,15 +19,16 @@ class KeyId(str):
         try:
             int(keyid, 16)
         except ValueError:
-            raise InvalidKeyIdError(keyid)
+            raise InvalidKeyId(keyid)
         if len(keyid) != 64:
-            raise InvalidKeyIdError(keyid)
+            raise InvalidKeyId(keyid)
         return keyid
 
     @staticmethod
     def from_pub(pub: PublicKey) -> 'KeyId':
-        # FIXME: ATS-specific keyid parsing
-        return KeyId("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+        hasher = sha256()
+        hasher.update(pub.save_pkcs1(format="DER"))
+        return KeyId(hexlify(hasher.digest()).decode("UTF-8"))
 
     @staticmethod
     def random() -> 'KeyId':
@@ -76,10 +79,6 @@ class Signature(object):
         """Return a new signature with the sig value replaced."""
         return Signature(self.keyid, sig, extra=self.extra)
 
-    def _append(self, obj: Dict[str, Any]) -> None:
-        """Add additional metadata to the signature"""
-        self.extra.update(obj)
-
     def _encode(self) -> Encoded:
         out: Dict[str, Any] = {"keyid": self.keyid, "sig": self.sig}
         out.update(self.extra)
@@ -120,11 +119,25 @@ class Signatures(object):
     def replace_key(self, key: KeyId, replace_with: Signature) -> 'Signatures':
         """Return a new object with the matching keys replaced."""
         matches: Dict[bool, List[Signature]] = groupby(lambda sig: sig.keyid == key, self.sigs)
-        return Signatures(list(concat([matches.get(False, []), [replace_with]])))
+        return Signatures(list(concat([[replace_with], matches.get(False, [])])))
 
     def replace_random(self, replace_with: Signature) -> 'Signatures':
         """Return a new object with a randomly selected key replaced."""
         return self.replace_key(self.random().keyid, replace_with)
+
+    def duplicate_key(self, key: KeyId) -> 'Signatures':
+        """Return a new object with the matching key duplicated."""
+        matches: Dict[bool, List[Signature]] = groupby(lambda sig: sig.keyid == key, self.sigs)
+        try:
+            sig = matches[True][0]
+            copy = deepcopy(sig)
+            return Signatures(list(concat([[sig, copy], matches.get(False, [])])))
+        except KeyError:
+            return Signatures(self.sigs)
+
+    def duplicate_random(self) -> 'Signatures':
+        """Return a new object with a randomly selected key duplicated."""
+        return self.duplicate_key(self.random().keyid)
 
     def _encode(self) -> Encoded:
         return [sig._encode() for sig in self.sigs]  # type: ignore

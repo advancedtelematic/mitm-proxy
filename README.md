@@ -1,19 +1,23 @@
 # tuf-mitm-proxy
 
-Script that does TUF related manipulations via `mitmproxy`.
+This project enables manipulation of [TUF flows](https://theupdateframework.github.io) between the [SOTA Client](https://github.com/advancedtelematic/aktualizr) and [SOTA Server](http://genivi.github.io/rvi_sota_server/) via [mitmproxy](https://mitmproxy.org).
 
 ## Usage
 
-### Building and running the Docker image
+Run `make` to see the available Makefile commands.
 
-In the project root run `make image` to build the docker image. This will install Python 3.6 plus all project dependencies. It will also copy over the `src/` directory and `entrypoint.sh` script for starting `mitmproxy`.
+### Available proxy flows
 
-The `entrypoint.sh` script will boot a QEMU image containing the client to test, copy a root certificate into this image and forward all bridged TCP traffic to `mitmproxy`. The image will be booted in snapshot mode so no changes to the image itself will be persisted.
+The `flows/` directory contains the individual `mitmproxy` flows that will manipulate the TUF metadata traffic. An HTTP API is started inside Docker to switch between the flows in this directory.
 
-To start this process run `make start`. You will need to set the `IMAGE_DIR` environment variable to the directory containing the QEMU image.
+### Starting the transparent proxy
 
-By default, it will look for an image named `core-image-minimal-qemux86-64.otaimg` and a bios file name `u-boot-qemux86-64.rom`. These values can be overridden by setting the `IMAGE_FILE` and `BIOS_FILE` environment variables passed to the bootstrap script when starting the image.
+To boot a new client QEMU image run `make start` with the `IMAGE_DIR` environment variable set.
 
-## License
+By default, `IMAGE_DIR` should contain a QEMU image named `core-image-minimal-qemux86-64.otaimg` and a BIOS file named `u-boot-qemux86-64.rom`, though these can be overridden by setting `IMAGE_FILE` and `BIOS_FILE` respectively.
 
-This work is licensed under the MPL2 license.
+### Controlling the proxy
+
+Send a `GET` request to `/available` or `/running` to see the available flows or currently running flow respectively.
+
+Send a `PUT` request to `/start/<name>` to start a new flow (where `<name>` is the flow name), or send a `PUT` request to `/stop` to stop the currently active flow.

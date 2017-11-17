@@ -1,8 +1,8 @@
 #!/usr/bin/env pipenv run python
 import sys
-sys.path.append("../../src")
+sys.path.append("../..")
 
-from datatypes.signing import Rsa  # noqa
+from api.datatypes.signing import Rsa  # noqa
 
 
 if __name__ == "__main__":
