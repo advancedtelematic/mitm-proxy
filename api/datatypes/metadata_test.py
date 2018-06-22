@@ -78,7 +78,7 @@ def test_targets_metadata() -> None:
 
 
 def test_encode_json() -> None:
-    for _, [], files in os.walk(META_DIR):
+    for (_, _, files) in os.walk(META_DIR):
         for filename in files:
             with open(f"{META_DIR}/{filename}", "rb") as fd:
                 data = fd.read()
