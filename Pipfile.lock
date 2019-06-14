@@ -266,9 +266,9 @@
         },
         "mitmproxy": {
             "hashes": [
-                "sha256:c184ca6146b83695efb5fae0ae1b9469a76cc86229e58dca63835f3a7bd34c5b"
+                "sha256:e74869c7bf4e5b988fbe3a3d0039f430d1e1eeb5927abf2097183a711bf5b312"
             ],
-            "version": "==4.0.3"
+            "version": "==4.0.4"
         },
         "mypy-extensions": {
             "hashes": [
